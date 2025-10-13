@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Judge Login</title>
+  <style>
+    body { font-family: Arial; max-width: 400px; margin: 50px auto; }
+    input { width: 100%; padding: 8px; margin: 6px 0; }
+    button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; }
+  </style>
+</head>
+<body>
+  <h2>Judge Login</h2>
+  <input type="text" id="username" placeholder="Username (e.g. j001)" />
+  <input type="password" id="password" placeholder="Password" />
+  <button onclick="login()">Login</button>
+  <p id="message" style="color: red;"></p>
+
+  <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+  <script>
+    // 🔑 REPLACE WITH YOUR BACK4APP KEYS
+    Parse.initialize("bJOuFXqbNI4qacTealJcXgn24UzWRCTs7T2MiQ8l", "JovQPOC1dwnEOWsGDxSNJYt3jcPvOFTisSHDOwAn");
+    Parse.serverURL = "https://parseapi.back4app.com/";
+
+    async function login() {
+      const username = document.getElementById("username").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+
+      if (!username || !password) {
+        showMessage("Please enter username and password.");
+        return;
+      }
+
+      try {
+        const user = await Parse.User.logIn(username, password);
+        // Ensure user has judge_id
+        if (!user.get("judge_id")) {
+          showMessage("Account missing judge_id. Contact admin.");
+          await Parse.User.logOut();
+          return;
+        }
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        console.error("Login error:", error);
+        showMessage("Login failed: " + error.message);
+      }
+    }
+
+    function showMessage(msg) {
+      document.getElementById("message").innerText = msg;
+    }
+  </script>
+</body>
+</html>
