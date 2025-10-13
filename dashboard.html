@@ -46,10 +46,6 @@
     let criteriaList = [];
     let teamList = [];
 
-    const user = await Parse.User.currentAsync();
-    console.log("Full user object:", user.toJSON());
-    console.log("judge_id value:", user.get("judge_id"));
-
     window.onload = async function () {
       try {
         const user = await Parse.User.currentAsync();
@@ -58,10 +54,10 @@
           return;
         }
 
-        currentJudgeId = user.get("judge_id"); // e.g., "J012"
+        currentJudgeId = user.get("judge_id"); // e.g., "J001"
         if (!currentJudgeId) throw new Error("User missing judge_id");
 
-        // Fetch judge info
+        // Fetch judge info (CASE SENSITIVE!)
         const judgeQuery = new Parse.Query("Judge");
         const judge = await judgeQuery.equalTo("judge_id", currentJudgeId).first();
         if (!judge) throw new Error("Judge not found");
@@ -130,6 +126,7 @@
       document.getElementById("scoreForm").innerHTML = formHtml;
       document.getElementById("scoringForm").classList.remove("hidden");
 
+      // Live update for sliders
       criteriaList.forEach(crit => {
         const code = crit.get("criteria_code");
         const slider = document.getElementById(`score_${code}`);
@@ -150,7 +147,7 @@
       });
 
       try {
-        // Check for existing scores (optional overwrite protection)
+        // Check existing scores
         const existingQuery = new Parse.Query("Score");
         existingQuery.equalTo("judge_id", currentJudgeId);
         existingQuery.equalTo("team_code", teamCode);
