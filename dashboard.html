@@ -23,10 +23,7 @@
       box-shadow: 0 3px 6px rgba(0,0,0,0.1);
     }
 
-    header h2 {
-      margin: 0;
-      font-size: 20px;
-    }
+    header h2 { margin: 0; font-size: 20px; }
 
     header button {
       background: #ffffff33;
@@ -39,9 +36,7 @@
       transition: background 0.3s;
     }
 
-    header button:hover {
-      background: #ffffff55;
-    }
+    header button:hover { background: #ffffff55; }
 
     main {
       max-width: 900px;
@@ -61,21 +56,11 @@
       margin-bottom: 20px;
     }
 
-    h3 {
-      color: #004aad;
-      margin-top: 0;
-    }
+    h3 { color: #004aad; margin-top: 0; }
 
-    label {
-      display: block;
-      margin: 15px 0;
-      font-weight: 500;
-    }
+    label { display: block; margin: 15px 0; font-weight: 500; }
 
-    input[type="range"] {
-      width: 100%;
-      accent-color: #007bff;
-    }
+    input[type="range"] { width: 100%; accent-color: #007bff; }
 
     .score-display {
       display: inline-block;
@@ -101,11 +86,7 @@
       transition: background 0.3s, transform 0.1s;
     }
 
-    .save-btn {
-      background: #007bff;
-      color: #fff;
-    }
-
+    .save-btn { background: #007bff; color: #fff; }
     .save-btn:hover { background: #005fcc; }
     .export-btn {
       background: #28a745;
@@ -149,7 +130,9 @@
 
   <footer>© 2025 IITS Judging System</footer>
 
-  <script src="./libs/parse.min.js"></script>
+  <!-- ✅ Use jsDelivr CDN for Parse -->
+  <script src="https://cdn.jsdelivr.net/npm/parse/dist/parse.min.js"></script>
+
   <script>
     Parse.initialize("616v52r1VZAEAeOUziBe8XveApnpTXEwUVKg1Dps", "CQk3Ng8VjGqae0qYNvHRlimHpNHks1iAzkBUXxSc");
     Parse.serverURL = "https://parseapi.back4app.com";
@@ -163,10 +146,7 @@
     window.onload = async function () {
       try {
         const user = await Parse.User.currentAsync();
-        if (!user) {
-          window.location.href = "index.html";
-          return;
-        }
+        if (!user) { window.location.href = "index.html"; return; }
 
         currentJudgeId = user.get("judge_id");
         if (!currentJudgeId) throw new Error("User missing judge_id");
@@ -195,7 +175,6 @@
 
         document.getElementById("judgeView").classList.remove("hidden");
         if (isMaster) document.getElementById("exportBtn").classList.remove("hidden");
-
         select.addEventListener("change", loadScoringForm);
       } catch (error) {
         alert("Error: " + error.message + ". Redirecting to login.");
@@ -206,7 +185,6 @@
     function loadScoringForm() {
       const teamCode = document.getElementById("teamSelect").value;
       if (!teamCode) return;
-
       const team = teamList.find(t => t.get("team_code") === teamCode);
       document.getElementById("selectedTeam").innerText = team.get("team_code");
 
@@ -236,7 +214,6 @@
     async function saveScores() {
       const teamCode = document.getElementById("teamSelect").value;
       if (!teamCode) return;
-
       const scores = {};
       criteriaList.forEach(crit => {
         const code = crit.get("criteria_code");
@@ -249,7 +226,6 @@
         existingQuery.equalTo("judge_id", currentJudgeId);
         existingQuery.equalTo("team_code", teamCode);
         const existing = await existingQuery.find();
-
         if (existing.length > 0) {
           if (!confirm("You've already scored this team. Overwrite?")) return;
           await Parse.Object.destroyAll(existing);
@@ -289,9 +265,7 @@
           .sort((a, b) => b.total - a.total);
 
         let csv = "Rank,Team Code,Total Score\n";
-        rankings.forEach((r, i) => {
-          csv += `${i + 1},${r.teamCode},${r.total}\n`;
-        });
+        rankings.forEach((r, i) => { csv += `${i + 1},${r.teamCode},${r.total}\n`; });
 
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);

@@ -61,13 +61,8 @@
       transition: background 0.3s, transform 0.1s;
     }
 
-    button:hover {
-      background: #005fcc;
-    }
-
-    button:active {
-      transform: scale(0.98);
-    }
+    button:hover { background: #005fcc; }
+    button:active { transform: scale(0.98); }
 
     #message {
       color: #e63946;
@@ -93,7 +88,9 @@
     <footer>© 2025 IITS Judging System</footer>
   </div>
 
-  <script src="./libs/parse.min.js"></script>
+  <!-- ✅ Use jsDelivr CDN for Parse -->
+  <script src="https://cdn.jsdelivr.net/npm/parse/dist/parse.min.js"></script>
+
   <script>
     Parse.initialize("616v52r1VZAEAeOUziBe8XveApnpTXEwUVKg1Dps", "CQk3Ng8VjGqae0qYNvHRlimHpNHks1iAzkBUXxSc");
     Parse.serverURL = "https://parseapi.back4app.com";
