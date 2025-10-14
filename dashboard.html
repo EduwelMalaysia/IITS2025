@@ -39,7 +39,7 @@
     header button:hover { background: #ffffff55; }
 
     main {
-      max-width: 900px;
+      max-width: 960px;
       margin: 30px auto;
       background: #fff;
       padding: 30px 40px;
@@ -56,11 +56,21 @@
       margin-bottom: 20px;
     }
 
-    h3 { color: #004aad; margin-top: 0; }
+    h3 {
+      color: #004aad;
+      margin-top: 0;
+    }
 
-    label { display: block; margin: 15px 0; font-weight: 500; }
+    label {
+      display: block;
+      margin: 15px 0;
+      font-weight: 500;
+    }
 
-    input[type="range"] { width: 100%; accent-color: #007bff; }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #007bff;
+    }
 
     .score-display {
       display: inline-block;
@@ -75,7 +85,7 @@
       margin-left: 10px;
     }
 
-    .save-btn, .export-btn {
+    .save-btn, .export-btn, .assign-btn {
       border: none;
       border-radius: 8px;
       padding: 12px 22px;
@@ -95,7 +105,33 @@
     }
     .export-btn:hover { background: #1f9139; }
 
+    .assign-btn {
+      background: #ff9f43;
+      color: #fff;
+      margin-right: 10px;
+    }
+    .assign-btn:hover { background: #e58e36; }
+
     .hidden { display: none; }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f4fa;
+    }
 
     footer {
       text-align: center;
@@ -108,10 +144,14 @@
 <body>
   <header>
     <h2 id="welcome">Loading...</h2>
-    <button onclick="logout()">Logout</button>
+    <div>
+      <button id="assignTab" class="assign-btn hidden" onclick="toggleAssignment()">Assign Teams</button>
+      <button onclick="logout()">Logout</button>
+    </div>
   </header>
 
   <main>
+    <!-- Scoring Section -->
     <div id="judgeView" class="hidden">
       <label for="teamSelect">Select Team:</label>
       <select id="teamSelect"></select>
@@ -123,6 +163,13 @@
       </div>
     </div>
 
+    <!-- Assignment Section (Master Only) -->
+    <div id="assignmentPanel" class="hidden">
+      <h3>Assign Teams to Judges</h3>
+      <div id="assignmentTable"></div>
+      <button class="save-btn" onclick="saveAssignments()">Save Assignments</button>
+    </div>
+
     <button id="exportBtn" class="export-btn hidden" onclick="exportRankings()">
       ⬇️ Export Team Rankings (CSV)
     </button>
@@ -130,7 +177,7 @@
 
   <footer>© 2025 IITS Judging System</footer>
 
-  <!-- ✅ Use jsDelivr CDN for Parse -->
+  <!-- ✅ Using jsDelivr CDN for Parse -->
   <script src="https://cdn.jsdelivr.net/npm/parse/dist/parse.min.js"></script>
 
   <script>
@@ -142,15 +189,17 @@
     let isMaster = false;
     let criteriaList = [];
     let teamList = [];
+    let judgeList = [];
 
     window.onload = async function () {
       try {
         const user = await Parse.User.currentAsync();
-        if (!user) { window.location.href = "index.html"; return; }
+        if (!user) {
+          window.location.href = "index.html";
+          return;
+        }
 
         currentJudgeId = user.get("judge_id");
-        if (!currentJudgeId) throw new Error("User missing judge_id");
-
         const judgeQuery = new Parse.Query("Judge");
         const judge = await judgeQuery.equalTo("judge_id", currentJudgeId).first();
         if (!judge) throw new Error("Judge not found");
@@ -159,12 +208,23 @@
         isMaster = judge.get("isMaster") === true;
         document.getElementById("welcome").innerText = `Welcome, ${currentJudgeName}`;
 
+        // Load criteria and teams
         const critQuery = new Parse.Query("Criteria");
         criteriaList = await critQuery.ascending("criteria_code").find();
 
         const teamQuery = new Parse.Query("Team");
         teamList = await teamQuery.ascending("team_code").find();
 
+        // If not master, filter by assignment
+        if (!isMaster) {
+          const assignQuery = new Parse.Query("JudgeAssignment");
+          assignQuery.equalTo("judge_id", currentJudgeId);
+          const assigned = await assignQuery.find();
+          const assignedCodes = assigned.map(a => a.get("team_code"));
+          teamList = teamList.filter(t => assignedCodes.includes(t.get("team_code")));
+        }
+
+        // Populate dropdown
         const select = document.getElementById("teamSelect");
         teamList.forEach(team => {
           const opt = document.createElement("option");
@@ -174,8 +234,14 @@
         });
 
         document.getElementById("judgeView").classList.remove("hidden");
-        if (isMaster) document.getElementById("exportBtn").classList.remove("hidden");
+
+        if (isMaster) {
+          document.getElementById("exportBtn").classList.remove("hidden");
+          document.getElementById("assignTab").classList.remove("hidden");
+        }
+
         select.addEventListener("change", loadScoringForm);
+
       } catch (error) {
         alert("Error: " + error.message + ". Redirecting to login.");
         window.location.href = "index.html";
@@ -185,6 +251,7 @@
     function loadScoringForm() {
       const teamCode = document.getElementById("teamSelect").value;
       if (!teamCode) return;
+
       const team = teamList.find(t => t.get("team_code") === teamCode);
       document.getElementById("selectedTeam").innerText = team.get("team_code");
 
@@ -248,18 +315,79 @@
       }
     }
 
+    async function toggleAssignment() {
+      const panel = document.getElementById("assignmentPanel");
+      panel.classList.toggle("hidden");
+      if (!panel.classList.contains("hidden")) loadAssignments();
+    }
+
+    async function loadAssignments() {
+      const judgeQuery = new Parse.Query("Judge");
+      judgeList = await judgeQuery.ascending("judge_id").find();
+
+      const teamQuery = new Parse.Query("Team");
+      const teams = await teamQuery.ascending("team_code").find();
+
+      const assignQuery = new Parse.Query("JudgeAssignment");
+      const allAssign = await assignQuery.find();
+
+      let html = `<table>
+                    <tr><th>Team</th><th>Assigned Judges</th></tr>`;
+      teams.forEach(team => {
+        const teamCode = team.get("team_code");
+        const assigned = allAssign.filter(a => a.get("team_code") === teamCode)
+                                  .map(a => a.get("judge_id"));
+        const judgeChecks = judgeList.map(j => {
+          const jid = j.get("judge_id");
+          const name = j.get("judge_name");
+          const checked = assigned.includes(jid) ? "checked" : "";
+          return `<label style="margin-right:10px;">
+                    <input type="checkbox" value="${jid}" ${checked}> ${name}
+                  </label>`;
+        }).join("");
+
+        html += `<tr><td>${teamCode} - ${team.get("team_name")}</td>
+                 <td data-team="${teamCode}">${judgeChecks}</td></tr>`;
+      });
+      html += "</table>";
+      document.getElementById("assignmentTable").innerHTML = html;
+    }
+
+    async function saveAssignments() {
+      try {
+        const delQuery = new Parse.Query("JudgeAssignment");
+        const all = await delQuery.find();
+        await Parse.Object.destroyAll(all);
+
+        const rows = document.querySelectorAll("#assignmentTable td[data-team]");
+        const toSave = [];
+        for (const cell of rows) {
+          const teamCode = cell.getAttribute("data-team");
+          const checked = cell.querySelectorAll("input:checked");
+          checked.forEach(chk => {
+            const assign = new Parse.Object("JudgeAssignment");
+            assign.set("team_code", teamCode);
+            assign.set("judge_id", chk.value);
+            toSave.push(assign);
+          });
+        }
+        await Parse.Object.saveAll(toSave);
+        alert("✅ Assignments updated successfully!");
+      } catch (err) {
+        alert("❌ Failed to save assignments: " + err.message);
+      }
+    }
+
     async function exportRankings() {
       try {
         const scoreQuery = new Parse.Query("Score");
         const allScores = await scoreQuery.find();
-
         const teamTotals = {};
         allScores.forEach(s => {
           const teamCode = s.get("team_code");
           if (!teamTotals[teamCode]) teamTotals[teamCode] = 0;
           teamTotals[teamCode] += s.get("score");
         });
-
         const rankings = Object.entries(teamTotals)
           .map(([teamCode, total]) => ({ teamCode, total: parseFloat(total.toFixed(2)) }))
           .sort((a, b) => b.total - a.total);
