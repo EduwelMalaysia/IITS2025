@@ -133,6 +133,16 @@
       background: #f1f4fa;
     }
 
+    .alert-scored {
+      background: #e8f9f0;
+      color: #2d7a46;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      border-left: 4px solid #28a745;
+    }
+
     footer {
       text-align: center;
       margin-top: 40px;
@@ -158,6 +168,7 @@
 
       <div id="scoringForm" class="hidden">
         <h3>Scoring: <span id="selectedTeam"></span></h3>
+        <div id="scoredAlert" class="alert-scored hidden">✅ Already Scored — You may overwrite if needed.</div>
         <form id="scoreForm"></form>
         <button class="save-btn" onclick="saveScores()">💾 Save Scores</button>
       </div>
@@ -177,7 +188,7 @@
 
   <footer>© 2025 IITS Judging System</footer>
 
-  <!-- ✅ Using jsDelivr CDN for Parse -->
+  <!-- ✅ jsDelivr CDN for Parse -->
   <script src="https://cdn.jsdelivr.net/npm/parse/dist/parse.min.js"></script>
 
   <script>
@@ -208,14 +219,13 @@
         isMaster = judge.get("isMaster") === true;
         document.getElementById("welcome").innerText = `Welcome, ${currentJudgeName}`;
 
-        // Load criteria and teams
         const critQuery = new Parse.Query("Criteria");
         criteriaList = await critQuery.ascending("criteria_code").find();
 
         const teamQuery = new Parse.Query("Team");
         teamList = await teamQuery.ascending("team_code").find();
 
-        // If not master, filter by assignment
+        // If not master, show only assigned teams
         if (!isMaster) {
           const assignQuery = new Parse.Query("JudgeAssignment");
           assignQuery.equalTo("judge_id", currentJudgeId);
@@ -224,7 +234,7 @@
           teamList = teamList.filter(t => assignedCodes.includes(t.get("team_code")));
         }
 
-        // Populate dropdown
+        // Populate team dropdown
         const select = document.getElementById("teamSelect");
         teamList.forEach(team => {
           const opt = document.createElement("option");
@@ -248,7 +258,7 @@
       }
     };
 
-    function loadScoringForm() {
+    async function loadScoringForm() {
       const teamCode = document.getElementById("teamSelect").value;
       if (!teamCode) return;
 
@@ -269,18 +279,34 @@
 
       document.getElementById("scoreForm").innerHTML = formHtml;
       document.getElementById("scoringForm").classList.remove("hidden");
+      document.getElementById("scoredAlert").classList.add("hidden");
 
+      // Range update listener
       criteriaList.forEach(crit => {
         const code = crit.get("criteria_code");
         const slider = document.getElementById(`score_${code}`);
         const disp = document.getElementById(`disp_${code}`);
         slider.oninput = () => disp.innerText = slider.value;
       });
+
+      // 🔒 Check if already scored
+      const existingQuery = new Parse.Query("Score");
+      existingQuery.equalTo("judge_id", currentJudgeId);
+      existingQuery.equalTo("team_code", teamCode);
+      const existing = await existingQuery.find();
+
+      if (existing.length > 0) {
+        document.getElementById("scoredAlert").classList.remove("hidden");
+        // Disable sliders until overwrite
+        const sliders = document.querySelectorAll("#scoreForm input[type=range]");
+        sliders.forEach(slider => slider.disabled = true);
+      }
     }
 
     async function saveScores() {
       const teamCode = document.getElementById("teamSelect").value;
       if (!teamCode) return;
+
       const scores = {};
       criteriaList.forEach(crit => {
         const code = crit.get("criteria_code");
@@ -293,23 +319,34 @@
         existingQuery.equalTo("judge_id", currentJudgeId);
         existingQuery.equalTo("team_code", teamCode);
         const existing = await existingQuery.find();
+
         if (existing.length > 0) {
-          if (!confirm("You've already scored this team. Overwrite?")) return;
+          const overwrite = confirm("⚠️ You've already scored this team.\nDo you want to overwrite previous scores?");
+          if (!overwrite) return;
           await Parse.Object.destroyAll(existing);
         }
 
+        const ScoreClass = Parse.Object.extend("Score");
+        const toSave = [];
         for (const crit of criteriaList) {
           const code = crit.get("criteria_code");
-          const ScoreClass = Parse.Object.extend("Score");
           const scoreObj = new ScoreClass();
           scoreObj.set("judge_id", currentJudgeId);
           scoreObj.set("team_code", teamCode);
           scoreObj.set("criteria_code", code);
           scoreObj.set("score", scores[code]);
-          await scoreObj.save();
+          toSave.push(scoreObj);
         }
 
-        alert("✅ Scores saved successfully!");
+        await Parse.Object.saveAll(toSave);
+
+        // Lock form after save
+        const sliders = document.querySelectorAll("#scoreForm input[type=range]");
+        sliders.forEach(slider => slider.disabled = true);
+        document.getElementById("scoredAlert").classList.remove("hidden");
+
+        alert("✅ Scores saved successfully! You may overwrite later if needed.");
+
       } catch (error) {
         alert("❌ Failed to save: " + error.message);
       }
