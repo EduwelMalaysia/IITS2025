@@ -192,7 +192,7 @@
   <script src="https://cdn.jsdelivr.net/npm/parse/dist/parse.min.js"></script>
 
   <script>
-    Parse.initialize("0iL5Hc94kzeGbKLD41d2qvHimDccR7oWFZdkFgXr", "xRV1BTKzFzstoZWxl6KH1Q2XuCCdE9pFyZeBz2Bd");
+    Parse.initialize"back4app-proxy.yeewengloke.workers.dev";
     Parse.serverURL = "https://parseapi.back4app.com";
 
     let currentJudgeId = null;
@@ -225,7 +225,6 @@
         const teamQuery = new Parse.Query("Team");
         teamList = await teamQuery.ascending("team_code").find();
 
-        // If not master, show only assigned teams
         if (!isMaster) {
           const assignQuery = new Parse.Query("JudgeAssignment");
           assignQuery.equalTo("judge_id", currentJudgeId);
@@ -234,7 +233,6 @@
           teamList = teamList.filter(t => assignedCodes.includes(t.get("team_code")));
         }
 
-        // Populate team dropdown
         const select = document.getElementById("teamSelect");
         teamList.forEach(team => {
           const opt = document.createElement("option");
@@ -281,7 +279,6 @@
       document.getElementById("scoringForm").classList.remove("hidden");
       document.getElementById("scoredAlert").classList.add("hidden");
 
-      // Range update listener
       criteriaList.forEach(crit => {
         const code = crit.get("criteria_code");
         const slider = document.getElementById(`score_${code}`);
@@ -289,7 +286,6 @@
         slider.oninput = () => disp.innerText = slider.value;
       });
 
-      // 🔒 Check if already scored
       const existingQuery = new Parse.Query("Score");
       existingQuery.equalTo("judge_id", currentJudgeId);
       existingQuery.equalTo("team_code", teamCode);
@@ -297,7 +293,6 @@
 
       if (existing.length > 0) {
         document.getElementById("scoredAlert").classList.remove("hidden");
-        // Disable sliders until overwrite
         const sliders = document.querySelectorAll("#scoreForm input[type=range]");
         sliders.forEach(slider => slider.disabled = true);
       }
@@ -340,7 +335,6 @@
 
         await Parse.Object.saveAll(toSave);
 
-        // Lock form after save
         const sliders = document.querySelectorAll("#scoreForm input[type=range]");
         sliders.forEach(slider => slider.disabled = true);
         document.getElementById("scoredAlert").classList.remove("hidden");
