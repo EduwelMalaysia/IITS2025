@@ -84,8 +84,8 @@
   <script src="https://cdn.jsdelivr.net/npm/parse@3.5.1/dist/parse.min.js"></script>
   <script>
     // ✅ Environment variables (injected from Cloudflare Pages / Netlify)
-    const appId  = BACK4APP_APP_ID;
-    const jsKey  = BACK4APP_JS_KEY;
+    const appId  = PUBLIC_BACK4APP_APP_ID;
+    const jsKey  = PUBLIC_BACK4APP_JS_KEY;
     const server = "https://back4app-proxy.yeewengloke.workers.dev";
 
     // ✅ Modern initialization (fixes currentInstallationId error)
@@ -94,6 +94,7 @@
       javascriptKey: jsKey,
       serverURL: server
     });
+    console.log("Parse initialized ✅", { appId, jsKey, server });
 
     async function login() {
       const username = document.getElementById("username").value.trim().toLowerCase();
