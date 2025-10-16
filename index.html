@@ -81,15 +81,19 @@
   </div>
 
   <!-- Parse SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/parse/dist/parse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/parse@3.5.1/dist/parse.min.js"></script>
   <script>
-    // ✅ Environment variables injected at build/deploy
-    const appId   = BACK4APP_APP_ID;
-    const jsKey   = BACK4APP_JS_KEY;
-    const apiURL  = "https://back4app-proxy.YOURNAME.workers.dev";
+    // ✅ Environment variables (injected from Cloudflare Pages / Netlify)
+    const appId  = BACK4APP_APP_ID;
+    const jsKey  = BACK4APP_JS_KEY;
+    const server = "https://back4app-proxy.yeewengloke.workers.dev";
 
-    Parse.initialize(appId, jsKey);
-    Parse.serverURL = apiURL;
+    // ✅ Modern initialization (fixes currentInstallationId error)
+    Parse.initialize({
+      applicationId: appId,
+      javascriptKey: jsKey,
+      serverURL: server
+    });
 
     async function login() {
       const username = document.getElementById("username").value.trim().toLowerCase();
