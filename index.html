@@ -98,18 +98,17 @@
         msg.innerText = "Please enter both username and password.";
         return;
       }
+
+      // ✅ Special admin credentials
       if (username === "eduwel" && password === "iits2025") {
-        // Optional: save login state (not secure, but prevents re-login on refresh)
         localStorage.setItem("isLoggedIn", "true");
         window.location.href = "admin.html";
-      } else {
-        document.getElementById("error").style.display = "block";
-        // Optional: clear password
-        document.getElementById("password").value = "";
+        return; // 🔴 STOP here — don't call API
       }
 
+      // 👇 Only reach here for judge login
       try {
-        const res = await fetch(API + "/login", {
+        const res = await fetch(`${API}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password }),
@@ -117,6 +116,7 @@
         const data = await res.json();
         if (!data.success) {
           msg.innerText = data.message || "Invalid credentials.";
+          document.getElementById("password").value = ""; // clear password on fail
         } else {
           localStorage.setItem("judge_id", data.user.judge_id);
           window.location.href = "dashboard.html";
@@ -127,7 +127,7 @@
       }
     }
     document.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") attemptLogin();
+      if (e.key === "Enter") login();
     });
   </script>
 </body>
