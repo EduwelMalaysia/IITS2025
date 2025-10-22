@@ -61,6 +61,15 @@
         msg.innerText = "Please enter both username and password.";
         return;
       }
+      if (username === "eduwel" && password === "iits2025") {
+        // Optional: save login state (not secure, but prevents re-login on refresh)
+        localStorage.setItem("isLoggedIn", "true");
+        window.location.href = "admin.html";
+      } else {
+        document.getElementById("error").style.display = "block";
+        // Optional: clear password
+        document.getElementById("password").value = "";
+      }
 
       try {
         const res = await fetch(API + "/login", {
@@ -80,6 +89,9 @@
         console.error(err);
       }
     }
+    document.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") attemptLogin();
+    });
   </script>
 </body>
 </html>
