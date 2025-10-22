@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Judging Dashboard</title>
   <style>
-    body { font-family: "Segoe UI", Arial; background:#f4f6fa; margin:0; color:#333; }
+    body { font-family:"Segoe UI",Arial; background:#f4f6fa; margin:0; color:#333; }
     header {
       background:#004aad; color:white; padding:15px 25px;
       display:flex; justify-content:space-between; align-items:center;
@@ -31,6 +31,11 @@
       text-align:center; margin-left:10px;
     }
     .alert { background:#e8f9f0; padding:10px 15px; border-left:4px solid #28a745; border-radius:8px; margin-bottom:10px; color:#2d7a46; }
+    .summary-box {
+      margin-top:20px; background:#f9f9ff; border-radius:10px;
+      padding:15px; border:1px solid #dde3f0;
+    }
+    .summary-box span { font-weight:bold; color:#004aad; }
   </style>
 </head>
 <body>
@@ -41,11 +46,18 @@
 
   <main>
     <label>Select Team:</label>
-    <select id="teamSelect"></select>
+    <select id="teamSelect">
+      <option value="">-- Select a Team --</option>
+    </select>
 
     <div id="criteriaForm" style="margin-top:20px;"></div>
 
-    <button onclick="saveScores()">💾 Save Scores</button>
+    <div class="summary-box" id="summaryBox" style="display:none;">
+      Total Score: <span id="totalScore">0</span> |
+      Final Weighted Score: <span id="finalScore">0</span>
+    </div>
+
+    <button id="saveBtn" onclick="saveScores()">💾 Save Scores</button>
     <hr>
     <button onclick="exportCSV()">⬇️ Export CSV (Master only)</button>
   </main>
@@ -54,22 +66,22 @@
     const API = "https://judging-system.yeewengloke.workers.dev";
     let judge_id = localStorage.getItem("judge_id");
 
-    if (!judge_id) {
-      window.location.href = "index.html";
-    }
+    if (!judge_id) window.location.href = "index.html";
 
     const teamSelect = document.getElementById("teamSelect");
     const formDiv = document.getElementById("criteriaForm");
+    const totalScoreEl = document.getElementById("totalScore");
+    const finalScoreEl = document.getElementById("finalScore");
+    const summaryBox = document.getElementById("summaryBox");
+
     let criteriaList = [];
 
-    // Initialize: load criteria and teams
+    // ===== INIT =====
     async function init() {
       try {
-        // Load criteria (once)
         const critRes = await fetch(API + "/criteria");
         criteriaList = await critRes.json();
 
-        // Load teams
         const teamsRes = await fetch(API + "/teams");
         const teams = await teamsRes.json();
 
@@ -80,80 +92,99 @@
           teamSelect.appendChild(opt);
         });
 
-        // Listen for team selection
         teamSelect.addEventListener("change", handleTeamChange);
       } catch (err) {
         alert("Failed to load data: " + err.message);
       }
     }
 
+    // ===== LOAD SCORES =====
     async function handleTeamChange() {
       const team_code = teamSelect.value;
       if (!team_code) {
         formDiv.innerHTML = "";
+        summaryBox.style.display = "none";
         return;
       }
 
-      // Refresh the page section (clear previous form)
       formDiv.innerHTML = "<p>Loading scores...</p>";
+      summaryBox.style.display = "none";
 
       try {
-        // Always fetch scores from DB
-        const url = `${API}/scores?judge_id=${encodeURIComponent(judge_id)}&team_code=${encodeURIComponent(team_code)}`;
+        const url = `${API}/scores?judge_id=${judge_id}&team_code=${team_code}`;
         const res = await fetch(url);
-        const existingScores = await res.json(); // Expected: { "CRIT1": 8, ... } or {}
+        const existingScores = await res.json();
 
         renderScoringForm(existingScores);
 
         if (Object.keys(existingScores).length > 0) {
-          // If already scored — disable form and notify
           disableFormInputs();
-          showAlert("⚠️ You have already graded this team. You cannot overwrite the score.", "warning");
+          showAlert(
+            `⚠️ You have already graded this team. Total: ${existingScores.total_score}, Final: ${existingScores.final_score.toFixed(2)}`,
+            "warning"
+          );
+          summaryBox.style.display = "block";
+          totalScoreEl.textContent = existingScores.total_score;
+          finalScoreEl.textContent = existingScores.final_score.toFixed(2);
         } else {
           showAlert("✅ You can now grade this team.", "success");
         }
       } catch (err) {
-        console.warn("Could not load existing scores:", err);
-        showAlert("⚠️ Could not load previous scores. Starting fresh.", "warning");
+        showAlert("⚠️ Could not load scores. Starting new grading.", "warning");
         renderScoringForm({});
       }
     }
 
+    // ===== FORM RENDER =====
     function renderScoringForm(existingScores = {}) {
       formDiv.innerHTML = criteriaList.map(c => {
         const savedValue = existingScores[c.criteria_code] ?? 0;
         return `
           <label>
             ${c.criteria_name} (${c.criteria_code})
-            <input type="range" id="${c.criteria_code}" min="0" max="10" step="0.5" value="${savedValue}">
+            <input type="range" id="${c.criteria_code}" min="0" max="10" step="1" value="${savedValue}">
             <span class="score-display" id="disp_${c.criteria_code}">${savedValue}</span>
           </label>
         `;
-      }).join("") + `
-        <button id="saveBtn" onclick="saveScores()">💾 Save Scores</button>
-      `;
+      }).join("");
 
-      // Attach live preview
+      // Live preview + calculation
       criteriaList.forEach(c => {
         const slider = document.getElementById(c.criteria_code);
         const disp = document.getElementById("disp_" + c.criteria_code);
-        if (slider && disp) {
-          slider.oninput = () => disp.textContent = slider.value;
-        }
+        slider.oninput = () => {
+          disp.textContent = slider.value;
+          calculateTotals();
+        };
       });
+
+      calculateTotals();
     }
 
-    function disableFormInputs() {
-      const sliders = formDiv.querySelectorAll("input[type=range]");
-      sliders.forEach(s => s.disabled = true);
-      const saveBtn = document.getElementById("saveBtn");
-      if (saveBtn) saveBtn.disabled = true;
+    // ===== CALCULATE TOTAL & FINAL SCORE =====
+    function calculateTotals() {
+      const vals = {};
+      criteriaList.forEach(c => {
+        vals[c.criteria_code] = parseFloat(document.getElementById(c.criteria_code)?.value) || 0;
+      });
+
+      const total = vals.C001 + vals.C002 + vals.C003 + vals.C004 + vals.C005;
+      const final =
+        vals.C001 * 0.15 +
+        vals.C002 * 0.4 +
+        vals.C003 * 0.15 +
+        vals.C004 * 0.15 +
+        vals.C005 * 0.15;
+
+      totalScoreEl.textContent = total.toFixed(1);
+      finalScoreEl.textContent = final.toFixed(2);
+      summaryBox.style.display = "block";
     }
 
+    // ===== ALERT BOX =====
     function showAlert(message, type = "success") {
       const old = formDiv.querySelector(".alert");
       if (old) old.remove();
-
       const alertDiv = document.createElement("div");
       alertDiv.className = "alert";
       if (type === "warning") {
@@ -165,9 +196,18 @@
       formDiv.prepend(alertDiv);
     }
 
+    // ===== DISABLE FORM =====
+    function disableFormInputs() {
+      const sliders = formDiv.querySelectorAll("input[type=range]");
+      sliders.forEach(s => s.disabled = true);
+      const saveBtn = document.getElementById("saveBtn");
+      if (saveBtn) saveBtn.disabled = true;
+    }
+
+    // ===== SAVE SCORES =====
     async function saveScores() {
       const team_code = teamSelect.value;
-      if (!team_code) return alert("Please select a team.");
+      if (!team_code) return alert("Please select a team first.");
 
       const scores = {};
       criteriaList.forEach(c => {
@@ -186,7 +226,7 @@
         if (data.success) {
           alert("✅ Scores saved successfully!");
           disableFormInputs();
-          showAlert("✅ Scores saved. You cannot modify them anymore.", "success");
+          showAlert("✅ Scores saved and locked.", "success");
         } else {
           throw new Error(data.error || "Unknown error");
         }
@@ -195,18 +235,19 @@
       }
     }
 
-    async function exportCSV() {
+    // ===== EXPORT CSV =====
+    function exportCSV() {
       window.location.href = API + "/export";
     }
 
+    // ===== LOGOUT =====
     function logout() {
       localStorage.removeItem("judge_id");
       window.location.href = "index.html";
     }
 
-    // Start the app
+    // ===== START =====
     init();
-    </script>
-
+  </script>
 </body>
 </html>
