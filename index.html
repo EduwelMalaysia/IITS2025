@@ -13,30 +13,67 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      padding: 20px;
     }
+
     .card {
       background: white;
       padding: 40px 35px;
       border-radius: 12px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-      width: 350px;
+      width: 100%;
+      max-width: 350px;
       text-align: center;
     }
-    h2 { color: #004aad; margin-bottom: 25px; }
+
+    h2 {
+      color: #004aad;
+      margin-bottom: 25px;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
     input {
-      width: 100%; padding: 12px; margin: 8px 0;
-      border: 1px solid #ccc; border-radius: 8px;
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
       font-size: 15px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
     }
+
+    input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+    }
+
     button {
-      width: 100%; padding: 12px;
-      background: #007bff; color: #fff;
-      border: none; border-radius: 8px;
-      font-weight: 600; cursor: pointer;
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
       transition: background 0.3s;
+      font-size: 16px;
+      margin-top: 16px;
     }
-    button:hover { background: #005fcc; }
-    #message { color: #e63946; margin-top: 15px; font-size: 14px; }
+
+    button:hover {
+      background: #005fcc;
+    }
+
+    #message {
+      color: #e63946;
+      margin-top: 15px;
+      font-size: 14px;
+      min-height: 20px;
+    }
   </style>
 </head>
 <body>
