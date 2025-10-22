@@ -49,10 +49,18 @@
       try {
         const critRes = await fetch(API + "/criteria");
         criteriaList = await critRes.json();
-        const teamsRes = await fetch(API + "/teams");
-        const teams = await teamsRes.json();
 
-        teams.forEach(t => {
+        // 🔍 DEBUG: Log the exact URL
+        const teamsUrl = `${API}/assigned-teams?judge_id=${judge_id}`;
+        console.log("Fetching from:", teamsUrl);
+
+        const teamsRes = await fetch(teamsUrl);
+        console.log("Status:", teamsRes.status); // Should be 200
+
+        const assignedTeams = await teamsRes.json();
+        console.log("Assigned teams:", assignedTeams); // Should be [ { team_code: "FE-001", ... } ]
+
+        assignedTeams.forEach(t => {
           const opt = document.createElement("option");
           opt.value = t.team_code;
           opt.textContent = `${t.team_code} - ${t.team_name}`;
@@ -61,7 +69,9 @@
 
         teamSelect.addEventListener("change", handleTeamChange);
       } catch (err) {
-        alert("Failed to load data: " + err.message);
+        console.error("Init failed:", err);
+        alert("Failed to load your assigned teams. Please log in again.");
+        logout();
       }
     }
 
