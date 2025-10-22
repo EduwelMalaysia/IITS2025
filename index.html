@@ -73,7 +73,7 @@
           msg.innerText = data.message || "Invalid credentials.";
         } else {
           localStorage.setItem("judge_id", data.user.judge_id);
-          window.location.href = "dashboard.html";
+          window.location.href = "judge.html";
         }
       } catch (err) {
         msg.innerText = "Login failed. Please try again.";
