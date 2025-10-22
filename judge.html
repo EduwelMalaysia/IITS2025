@@ -62,7 +62,7 @@
     const formDiv = document.getElementById("criteriaForm");
     let criteriaList = [];
 
-    // --- Initialization ---
+    // Initialize: load criteria and teams
     async function init() {
       try {
         // Load criteria (once)
@@ -80,13 +80,13 @@
           teamSelect.appendChild(opt);
         });
 
+        // Listen for team selection
         teamSelect.addEventListener("change", handleTeamChange);
       } catch (err) {
-        alert("❌ Failed to load data: " + err.message);
+        alert("Failed to load data: " + err.message);
       }
     }
 
-    // --- Team selection handler ---
     async function handleTeamChange() {
       const team_code = teamSelect.value;
       if (!team_code) {
@@ -94,53 +94,46 @@
         return;
       }
 
-      // Clear previous form
+      // Refresh the page section (clear previous form)
       formDiv.innerHTML = "<p>Loading scores...</p>";
 
       try {
-        // Always check if this judge already graded the team
+        // Always fetch scores from DB
         const url = `${API}/scores?judge_id=${encodeURIComponent(judge_id)}&team_code=${encodeURIComponent(team_code)}`;
         const res = await fetch(url);
         const existingScores = await res.json(); // Expected: { "CRIT1": 8, ... } or {}
 
+        renderScoringForm(existingScores);
+
         if (Object.keys(existingScores).length > 0) {
-          // Judge already graded this team
-          renderScoringForm(existingScores, true);
-          showAlert("⚠️ You have already graded this team. Scores are locked and cannot be changed.", "warning");
+          // If already scored — disable form and notify
+          disableFormInputs();
+          showAlert("⚠️ You have already graded this team. You cannot overwrite the score.", "warning");
         } else {
-          // Judge has not graded yet
-          renderScoringForm({}, false);
-          showAlert("✅ You can now score this team.", "success");
+          showAlert("✅ You can now grade this team.", "success");
         }
       } catch (err) {
-        console.error(err);
-        showAlert("⚠️ Error fetching scores. Please try again.", "warning");
+        console.warn("Could not load existing scores:", err);
+        showAlert("⚠️ Could not load previous scores. Starting fresh.", "warning");
+        renderScoringForm({});
       }
     }
 
-    // --- Render scoring form ---
-    function renderScoringForm(existingScores = {}, isLocked = false) {
+    function renderScoringForm(existingScores = {}) {
       formDiv.innerHTML = criteriaList.map(c => {
         const savedValue = existingScores[c.criteria_code] ?? 0;
         return `
           <label>
             ${c.criteria_name} (${c.criteria_code})
-            <input type="range" id="${c.criteria_code}" min="0" max="10" step="1"
-                  value="${savedValue}" ${isLocked ? "disabled" : ""}>
+            <input type="range" id="${c.criteria_code}" min="0" max="10" step="0.5" value="${savedValue}">
             <span class="score-display" id="disp_${c.criteria_code}">${savedValue}</span>
           </label>
         `;
-      }).join("");
+      }).join("") + `
+        <button id="saveBtn" onclick="saveScores()">💾 Save Scores</button>
+      `;
 
-      // Add save button only if editable
-      if (!isLocked) {
-        const saveBtn = document.createElement("button");
-        saveBtn.textContent = "💾 Save Scores";
-        saveBtn.onclick = saveScores;
-        formDiv.appendChild(saveBtn);
-      }
-
-      // Attach live display updates
+      // Attach live preview
       criteriaList.forEach(c => {
         const slider = document.getElementById(c.criteria_code);
         const disp = document.getElementById("disp_" + c.criteria_code);
@@ -150,7 +143,28 @@
       });
     }
 
-    // --- Save scores ---
+    function disableFormInputs() {
+      const sliders = formDiv.querySelectorAll("input[type=range]");
+      sliders.forEach(s => s.disabled = true);
+      const saveBtn = document.getElementById("saveBtn");
+      if (saveBtn) saveBtn.disabled = true;
+    }
+
+    function showAlert(message, type = "success") {
+      const old = formDiv.querySelector(".alert");
+      if (old) old.remove();
+
+      const alertDiv = document.createElement("div");
+      alertDiv.className = "alert";
+      if (type === "warning") {
+        alertDiv.style.borderLeftColor = "#ffc107";
+        alertDiv.style.backgroundColor = "#fff8e1";
+        alertDiv.style.color = "#856404";
+      }
+      alertDiv.textContent = message;
+      formDiv.prepend(alertDiv);
+    }
+
     async function saveScores() {
       const team_code = teamSelect.value;
       if (!team_code) return alert("Please select a team.");
@@ -171,7 +185,8 @@
         const data = await res.json();
         if (data.success) {
           alert("✅ Scores saved successfully!");
-          handleTeamChange(); // Refresh form to lock it
+          disableFormInputs();
+          showAlert("✅ Scores saved. You cannot modify them anymore.", "success");
         } else {
           throw new Error(data.error || "Unknown error");
         }
@@ -180,34 +195,16 @@
       }
     }
 
-    // --- Export ---
-    function exportCSV() {
+    async function exportCSV() {
       window.location.href = API + "/export";
     }
 
-    // --- Logout ---
     function logout() {
       localStorage.removeItem("judge_id");
       window.location.href = "index.html";
     }
 
-    // --- Alert helper ---
-    function showAlert(message, type = "success") {
-      const old = formDiv.querySelector(".alert");
-      if (old) old.remove();
-
-      const alertDiv = document.createElement("div");
-      alertDiv.className = "alert";
-      if (type === "warning") {
-        alertDiv.style.borderLeftColor = "#ffc107";
-        alertDiv.style.backgroundColor = "#fff8e1";
-        alertDiv.style.color = "#856404";
-      }
-      alertDiv.textContent = message;
-      formDiv.prepend(alertDiv);
-    }
-
-    // --- Start ---
+    // Start the app
     init();
     </script>
 
