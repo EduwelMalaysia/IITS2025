@@ -54,82 +54,111 @@
     const API = "https://judging-system.yeewengloke.workers.dev";
     let judge_id = localStorage.getItem("judge_id");
 
-    if (!judge_id) window.location.href = "index.html";
+    if (!judge_id) {
+      window.location.href = "index.html";
+    }
 
     const teamSelect = document.getElementById("teamSelect");
     const formDiv = document.getElementById("criteriaForm");
     let criteriaList = [];
 
-    // Load teams and criteria once on startup
+    // Initialize: load criteria and teams
     async function init() {
-      // Load criteria (static)
-      const criteriaRes = await fetch(API + "/criteria");
-      criteriaList = await criteriaRes.json();
+      try {
+        // Load criteria (once)
+        const critRes = await fetch(API + "/criteria");
+        criteriaList = await critRes.json();
 
-      // Load teams
-      const teamsRes = await fetch(API + "/teams");
-      const teams = await teamsRes.json();
-      teams.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t.team_code;
-        opt.textContent = `${t.team_code} - ${t.team_name}`;
-        teamSelect.appendChild(opt);
-      });
+        // Load teams
+        const teamsRes = await fetch(API + "/teams");
+        const teams = await teamsRes.json();
 
-      // Set up team change listener
-      teamSelect.addEventListener("change", () => {
-        if (teamSelect.value) {
-          loadTeamScores(teamSelect.value);
-        } else {
-          formDiv.innerHTML = "";
-        }
-      });
+        teams.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.team_code;
+          opt.textContent = `${t.team_code} - ${t.team_name}`;
+          teamSelect.appendChild(opt);
+        });
 
-      // Trigger initial load if a team is pre-selected (optional)
+        // Listen for team selection
+        teamSelect.addEventListener("change", handleTeamChange);
+      } catch (err) {
+        alert("Failed to load data: " + err.message);
+      }
     }
 
-    // Load and display scores for selected team
-    async function loadTeamScores(team_code) {
-      // Reset form
+    async function handleTeamChange() {
+      const team_code = teamSelect.value;
+      if (!team_code) {
+        formDiv.innerHTML = "";
+        return;
+      }
+
+      // Always rebuild form from criteria
+      renderScoringForm();
+
+      // Then fetch existing scores from D1 and fill them in
+      try {
+        const url = `${API}/scores?judge_id=${encodeURIComponent(judge_id)}&team_code=${encodeURIComponent(team_code)}`;
+        const res = await fetch(url);
+        const existingScores = await res.json(); // Expected: { "CRIT1": 8, ... } or {}
+
+        // Fill sliders with saved values (default to 0 if not scored)
+        criteriaList.forEach(crit => {
+          const code = crit.criteria_code;
+          const savedValue = existingScores[code] ?? 0;
+          const slider = document.getElementById(code);
+          const display = document.getElementById("disp_" + code);
+
+          if (slider) {
+            slider.value = savedValue;
+            display.textContent = savedValue;
+          }
+        });
+
+        // Show feedback if already scored
+        if (Object.keys(existingScores).length > 0) {
+          showAlert("✅ Already scored — you may update and resave.");
+        }
+      } catch (err) {
+        console.warn("Could not load existing scores:", err);
+        showAlert("⚠️ Could not load previous scores. Starting fresh.", "warning");
+      }
+    }
+
+    function renderScoringForm() {
       formDiv.innerHTML = criteriaList.map(c => `
-        <label>${c.criteria_name} (${c.criteria_code})
-          <input type="range" id="${c.criteria_code}" min="0" max="10" step="1" value="0">
+        <label>
+          ${c.criteria_name} (${c.criteria_code})
+          <input type="range" id="${c.criteria_code}" min="0" max="10" step="0.5" value="0">
           <span class="score-display" id="disp_${c.criteria_code}">0</span>
         </label>
       `).join("");
 
-      // Attach live update
+      // Attach live preview
       criteriaList.forEach(c => {
         const slider = document.getElementById(c.criteria_code);
         const disp = document.getElementById("disp_" + c.criteria_code);
-        slider.oninput = () => disp.textContent = slider.value;
-      });
-
-      // Fetch existing scores
-      try {
-        const res = await fetch(`${API}/scores?judge_id=${judge_id}&team_code=${team_code}`);
-        const existing = await res.json();
-
-        if (existing && Object.keys(existing).length > 0) {
-          // Show alert
-          const alertDiv = document.createElement("div");
-          alertDiv.className = "alert";
-          alertDiv.textContent = "✅ Already scored — you may update and resave.";
-          formDiv.prepend(alertDiv);
-
-          // Fill sliders with saved values
-          criteriaList.forEach(c => {
-            const saved = existing[c.criteria_code];
-            if (saved !== undefined) {
-              const slider = document.getElementById(c.criteria_code);
-              slider.value = saved;
-              document.getElementById("disp_" + c.criteria_code).textContent = saved;
-            }
-          });
+        if (slider && disp) {
+          slider.oninput = () => disp.textContent = slider.value;
         }
-      } catch (err) {
-        console.warn("Could not load existing scores", err);
+      });
+    }
+
+    function showAlert(message, type = "success") {
+      // Remove existing alerts
+      const old = formDiv.querySelector(".alert");
+      if (old) old.remove();
+
+      const alertDiv = document.createElement("div");
+      alertDiv.className = "alert";
+      if (type === "warning") {
+        alertDiv.style.borderLeftColor = "#ffc107";
+        alertDiv.style.backgroundColor = "#fff8e1";
+        alertDiv.style.color = "#856404";
       }
+      alertDiv.textContent = message;
+      formDiv.prepend(alertDiv);
     }
 
     async function saveScores() {
@@ -137,22 +166,27 @@
       if (!team_code) return alert("Please select a team.");
 
       const scores = {};
-      document.querySelectorAll("input[type=range]").forEach(i => {
-        scores[i.id] = parseFloat(i.value);
+      criteriaList.forEach(c => {
+        const val = parseFloat(document.getElementById(c.criteria_code)?.value) || 0;
+        scores[c.criteria_code] = val;
       });
 
-      const res = await fetch(API + "/scores", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ judge_id, team_code, scores }),
-      });
+      try {
+        const res = await fetch(API + "/scores", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ judge_id, team_code, scores }),
+        });
 
-      const data = await res.json();
-      if (data.success) {
-        alert("✅ Scores saved!");
-        // Optional: disable editing after save (but you want to allow edits, so skip)
-      } else {
-        alert("❌ Save failed: " + (data.error || "Unknown error"));
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ Scores saved to D1!");
+          // Optional: keep form editable (you want this)
+        } else {
+          throw new Error(data.error || "Unknown error");
+        }
+      } catch (err) {
+        alert("❌ Save failed: " + err.message);
       }
     }
 
@@ -165,7 +199,7 @@
       window.location.href = "index.html";
     }
 
-    // Start app
+    // Start the app
     init();
   </script>
 </body>
