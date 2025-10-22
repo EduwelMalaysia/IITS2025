@@ -62,7 +62,7 @@
     const formDiv = document.getElementById("criteriaForm");
     let criteriaList = [];
 
-    // Initialize: load criteria and teams
+    // --- Initialization ---
     async function init() {
       try {
         // Load criteria (once)
@@ -80,13 +80,13 @@
           teamSelect.appendChild(opt);
         });
 
-        // Listen for team selection
         teamSelect.addEventListener("change", handleTeamChange);
       } catch (err) {
-        alert("Failed to load data: " + err.message);
+        alert("❌ Failed to load data: " + err.message);
       }
     }
 
+    // --- Team selection handler ---
     async function handleTeamChange() {
       const team_code = teamSelect.value;
       if (!team_code) {
@@ -94,46 +94,53 @@
         return;
       }
 
-      // Refresh the page section (clear previous form)
+      // Clear previous form
       formDiv.innerHTML = "<p>Loading scores...</p>";
 
       try {
-        // Always fetch scores from DB
+        // Always check if this judge already graded the team
         const url = `${API}/scores?judge_id=${encodeURIComponent(judge_id)}&team_code=${encodeURIComponent(team_code)}`;
         const res = await fetch(url);
         const existingScores = await res.json(); // Expected: { "CRIT1": 8, ... } or {}
 
-        renderScoringForm(existingScores);
-
         if (Object.keys(existingScores).length > 0) {
-          // If already scored — disable form and notify
-          disableFormInputs();
-          showAlert("⚠️ You have already graded this team. You cannot overwrite the score.", "warning");
+          // Judge already graded this team
+          renderScoringForm(existingScores, true);
+          showAlert("⚠️ You have already graded this team. Scores are locked and cannot be changed.", "warning");
         } else {
-          showAlert("✅ You can now grade this team.", "success");
+          // Judge has not graded yet
+          renderScoringForm({}, false);
+          showAlert("✅ You can now score this team.", "success");
         }
       } catch (err) {
-        console.warn("Could not load existing scores:", err);
-        showAlert("⚠️ Could not load previous scores. Starting fresh.", "warning");
-        renderScoringForm({});
+        console.error(err);
+        showAlert("⚠️ Error fetching scores. Please try again.", "warning");
       }
     }
 
-    function renderScoringForm(existingScores = {}) {
+    // --- Render scoring form ---
+    function renderScoringForm(existingScores = {}, isLocked = false) {
       formDiv.innerHTML = criteriaList.map(c => {
         const savedValue = existingScores[c.criteria_code] ?? 0;
         return `
           <label>
             ${c.criteria_name} (${c.criteria_code})
-            <input type="range" id="${c.criteria_code}" min="0" max="10" step="0.5" value="${savedValue}">
+            <input type="range" id="${c.criteria_code}" min="0" max="10" step="1"
+                  value="${savedValue}" ${isLocked ? "disabled" : ""}>
             <span class="score-display" id="disp_${c.criteria_code}">${savedValue}</span>
           </label>
         `;
-      }).join("") + `
-        <button id="saveBtn" onclick="saveScores()">💾 Save Scores</button>
-      `;
+      }).join("");
 
-      // Attach live preview
+      // Add save button only if editable
+      if (!isLocked) {
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "💾 Save Scores";
+        saveBtn.onclick = saveScores;
+        formDiv.appendChild(saveBtn);
+      }
+
+      // Attach live display updates
       criteriaList.forEach(c => {
         const slider = document.getElementById(c.criteria_code);
         const disp = document.getElementById("disp_" + c.criteria_code);
@@ -143,28 +150,7 @@
       });
     }
 
-    function disableFormInputs() {
-      const sliders = formDiv.querySelectorAll("input[type=range]");
-      sliders.forEach(s => s.disabled = true);
-      const saveBtn = document.getElementById("saveBtn");
-      if (saveBtn) saveBtn.disabled = true;
-    }
-
-    function showAlert(message, type = "success") {
-      const old = formDiv.querySelector(".alert");
-      if (old) old.remove();
-
-      const alertDiv = document.createElement("div");
-      alertDiv.className = "alert";
-      if (type === "warning") {
-        alertDiv.style.borderLeftColor = "#ffc107";
-        alertDiv.style.backgroundColor = "#fff8e1";
-        alertDiv.style.color = "#856404";
-      }
-      alertDiv.textContent = message;
-      formDiv.prepend(alertDiv);
-    }
-
+    // --- Save scores ---
     async function saveScores() {
       const team_code = teamSelect.value;
       if (!team_code) return alert("Please select a team.");
@@ -185,8 +171,7 @@
         const data = await res.json();
         if (data.success) {
           alert("✅ Scores saved successfully!");
-          disableFormInputs();
-          showAlert("✅ Scores saved. You cannot modify them anymore.", "success");
+          handleTeamChange(); // Refresh form to lock it
         } else {
           throw new Error(data.error || "Unknown error");
         }
@@ -195,16 +180,34 @@
       }
     }
 
-    async function exportCSV() {
+    // --- Export ---
+    function exportCSV() {
       window.location.href = API + "/export";
     }
 
+    // --- Logout ---
     function logout() {
       localStorage.removeItem("judge_id");
       window.location.href = "index.html";
     }
 
-    // Start the app
+    // --- Alert helper ---
+    function showAlert(message, type = "success") {
+      const old = formDiv.querySelector(".alert");
+      if (old) old.remove();
+
+      const alertDiv = document.createElement("div");
+      alertDiv.className = "alert";
+      if (type === "warning") {
+        alertDiv.style.borderLeftColor = "#ffc107";
+        alertDiv.style.backgroundColor = "#fff8e1";
+        alertDiv.style.color = "#856404";
+      }
+      alertDiv.textContent = message;
+      formDiv.prepend(alertDiv);
+    }
+
+    // --- Start ---
     init();
     </script>
 
