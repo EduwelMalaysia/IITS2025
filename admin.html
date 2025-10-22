@@ -264,15 +264,80 @@
     .btn:hover { background: #2980b9; }
     .empty, .error { color: #e74c3c; font-style: italic; }
 
+    /* Enhanced Score Viewer Table */
+    .teams-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+    .teams-table th,
+    .teams-table td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .teams-table th {
+      background-color: #f8fafc;
+      color: #004aad;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+    .teams-table th:hover {
+      background-color: #edf2ff;
+    }
+    .teams-table tbody tr {
+      transition: background-color 0.15s;
+    }
+    .teams-table tbody tr:hover {
+      background-color: #f9fafb;
+    }
+    .teams-table td {
+      color: #334155;
+    }
+    .teams-table td strong {
+      color: #000;
+      font-weight: 600;
+    }
+    /* Make dropdowns blend in */
     .teams-table select {
       width: 100%;
-      padding: 4px;
+      padding: 6px 8px;
       border: 1px solid #cbd5e1;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 13px;
       background: white;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 1.2em;
+      padding-right: 24px;
     }
-    .teams-table select:hover { border-color: #94a8ff; }
+    .teams-table select:hover {
+      border-color: #94a8ff;
+    }
+    /* Responsive scroll container */
+    .team-list > div {
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+    }
+    .team-list > div::-webkit-scrollbar {
+      height: 8px;
+    }
+    .team-list > div::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 4px;
+    }
+    .team-list > div::-webkit-scrollbar-thumb:hover {
+      background-color: #94a3b8;
+    }
 
     /* END MICKY */
 
@@ -588,29 +653,43 @@
         viewerteamListContainer.innerHTML = `<p class="error">❌ Failed to load teams.</p>`;
       }
     }
+
+    let currentSort = {
+      column: 'team_code', // default sort column
+      direction: 'asc'     // 'asc' or 'desc'
+    };  
+
     function renderTeams(teams) {
       if (!teams || teams.length === 0) {
         viewerteamListContainer.innerHTML = '<p class="empty">No teams found.</p>';
         return;
       }
 
-      const awardOptions = [
-        "", // empty = no award
-        "champion",
-        "1st runner up",
-        "2nd runner up",
-        "3rd runner up",
-        "4th runner up",
-        "The Best Presentation Award",
-        "The Outstanding Tech Award",
-        "The Most Popular Award",
-        "The Sustainability Idea Award",
-        "The Entrepreneurial Award"
-      ];
+      // Apply current sort
+      const sortedTeams = [...teams].sort((a, b) => {
+        let aVal = a[currentSort.column] ?? '';
+        let bVal = b[currentSort.column] ?? '';
 
+        // Handle numeric vs string
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        } else {
+          aVal = String(aVal).toLowerCase();
+          bVal = String(bVal).toLowerCase();
+          if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+          if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+          return 0;
+        }
+      });
+
+      const awardOptions = [
+        "", "champion", "1st runner up", "2nd runner up", "3rd runner up", "4th runner up",
+        "The Best Presentation Award", "The Outstanding Tech Award", "The Most Popular Award",
+        "The Sustainability Idea Award", "The Entrepreneurial Award"
+      ];
       const gradeOptions = ["", "titanium", "gold", "silver", "bronze"];
 
-      const rows = teams.map(team => {
+      const rows = sortedTeams.map(team => {
         const currentAward = team.award || "";
         const currentGrade = team.grade || "";
 
@@ -623,7 +702,6 @@
             ).join('')}
           </select>
         `;
-
         const gradeSelect = `
           <select class="grade-select" data-team-code="${team.team_code}">
             ${gradeOptions.map(opt => 
@@ -651,23 +729,32 @@
         `;
       }).join('');
 
+      // Column labels with sort indicators
+      const columns = [
+        { key: 'team_code', label: 'Team Code' },
+        { key: 'team_name', label: 'Team Name' },
+        { key: 'category', label: 'Category' },
+        { key: 'final_creativity', label: 'Creativity' },
+        { key: 'final_practical', label: 'Practical' },
+        { key: 'final_social', label: 'Social' },
+        { key: 'final_cost', label: 'Cost' },
+        { key: 'final_presentation', label: 'Presentation' },
+        { key: 'final_score', label: 'Final Score' },
+        { key: 'award', label: 'Award' },
+        { key: 'grade', label: 'Grade' }
+      ];
+
+      const thead = columns.map(col => {
+        const isSorted = currentSort.column === col.key;
+        const arrow = isSorted ? (currentSort.direction === 'asc' ? ' ↑' : ' ↓') : '';
+        return `<th data-column="${col.key}" style="cursor:pointer; user-select:none;">${col.label}${arrow}</th>`;
+      }).join('');
+
       viewerteamListContainer.innerHTML = `
         <div style="overflow-x: auto;">
           <table class="teams-table">
             <thead>
-              <tr>
-                <th>Team Code</th>
-                <th>Team Name</th>
-                <th>Category</th>
-                <th>Creativity</th>
-                <th>Practical</th>
-                <th>Social</th>
-                <th>Cost</th>
-                <th>Presentation</th>
-                <th>Final Score</th>
-                <th>Award</th>
-                <th>Grade</th>
-              </tr>
+              <tr>${thead}</tr>
             </thead>
             <tbody>
               ${rows}
@@ -676,13 +763,28 @@
         </div>
       `;
 
-      // Add event listeners to all award/grade dropdowns
+      // Re-attach event listeners
       viewerteamListContainer.querySelectorAll('.award-select').forEach(select => {
         select.addEventListener('change', handleAwardChange);
       });
-
       viewerteamListContainer.querySelectorAll('.grade-select').forEach(select => {
         select.addEventListener('change', handleGradeChange);
+      });
+
+      // Add click handlers for sorting
+      viewerteamListContainer.querySelectorAll('th[data-column]').forEach(th => {
+        th.addEventListener('click', () => {
+          const column = th.dataset.column;
+          if (currentSort.column === column) {
+            // Toggle direction
+            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+          } else {
+            // New column, default to ascending
+            currentSort.column = column;
+            currentSort.direction = 'asc';
+          }
+          renderTeams(teams); // Re-render with new sort
+        });
       });
     }
 

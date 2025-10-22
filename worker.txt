@@ -1,0 +1,253 @@
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const db = env.DB;
+    const method = request.method;
+
+    // ✅ CORS headers
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    };
+
+    if (method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    const jsonResponse = (data, status = 200) =>
+      new Response(JSON.stringify(data), {
+        status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    // =====================================
+    // 🔐 LOGIN
+    // =====================================
+    if (url.pathname === "/login" && method === "POST") {
+      const { username, password } = await request.json();
+      const { results } = await db
+        .prepare("SELECT * FROM users WHERE username = ? AND password = ?")
+        .bind(username, password)
+        .all();
+
+      if (results.length === 0)
+        return jsonResponse({ success: false, message: "Invalid login" });
+      return jsonResponse({ success: true, user: results[0] });
+    }
+
+    // =====================================
+    // 📋 GET CRITERIA
+    // =====================================
+    if (url.pathname === "/criteria" && method === "GET") {
+      const { results } = await db.prepare("SELECT * FROM criteria").all();
+      return jsonResponse(results);
+    }
+
+    // =====================================
+    // 🧑‍🤝‍🧑 GET TEAMS
+    // =====================================
+    if (url.pathname === "/teams" && method === "GET") {
+      const { results } = await db.prepare("SELECT * FROM teams").all();
+      return jsonResponse(results);
+    }
+    
+    // =====================================
+    // JUDGES NAMES
+    // =====================================
+    if (url.pathname === "/judges") {
+      const { results } = await env.DB.prepare("SELECT judge_id, judge_name FROM judges").all();
+      return Response.json(results);
+    }   
+
+    // =====================================
+    // 🧮 SAVE SCORES (POST)
+    // =====================================
+    if (url.pathname === "/scores" && method === "POST") {
+      const data = await request.json();
+      const { judge_id, team_code, scores } = data;
+    
+      // 1️⃣ Prevent duplicate submission per judge per team
+      const exists = await db
+        .prepare(
+          "SELECT id FROM scores WHERE judge_id = ? AND team_code = ? LIMIT 1"
+        )
+        .bind(judge_id, team_code)
+        .first();
+    
+      if (exists) {
+        return jsonResponse({
+          success: false,
+          error: "Already submitted. Scores are locked.",
+        });
+      }
+    
+      // 2️⃣ Insert all scores
+      for (const [criteria_code, score] of Object.entries(scores)) {
+        await db
+          .prepare(
+            "INSERT INTO scores (judge_id, team_code, criteria_code, score) VALUES (?, ?, ?, ?)"
+          )
+          .bind(judge_id, team_code, criteria_code, score)
+          .run();
+      }
+    
+      // 3️⃣ Count number of unique judges for this team
+      const { results: judgeCountResult } = await db
+        .prepare(
+          "SELECT COUNT(DISTINCT judge_id) AS judge_count FROM scores WHERE team_code = ?"
+        )
+        .bind(team_code)
+        .all();
+    
+      const judgeCount = judgeCountResult?.[0]?.judge_count || 1;
+    
+      // 4️⃣ Compute total per-criterion score for that team
+      const { results: totalScores } = await db
+        .prepare(
+          `
+          SELECT
+            COALESCE(SUM(CASE WHEN criteria_code='C001' THEN score ELSE 0 END), 0) AS sum_creativity,
+            COALESCE(SUM(CASE WHEN criteria_code='C002' THEN score ELSE 0 END), 0) AS sum_practical,
+            COALESCE(SUM(CASE WHEN criteria_code='C003' THEN score ELSE 0 END), 0) AS sum_social,
+            COALESCE(SUM(CASE WHEN criteria_code='C004' THEN score ELSE 0 END), 0) AS sum_cost,
+            COALESCE(SUM(CASE WHEN criteria_code='C005' THEN score ELSE 0 END), 0) AS sum_presentation
+          FROM scores
+          WHERE team_code = ?
+          `
+        )
+        .bind(team_code)
+        .all();
+    
+      const sums = totalScores?.[0] || {};
+    
+      // 5️⃣ Divide each criterion by unique judge count & apply weighting
+      const final_creativity = (sums.sum_creativity / judgeCount) * 0.15;
+      const final_practical = (sums.sum_practical / judgeCount) * 0.4;
+      const final_social = (sums.sum_social / judgeCount) * 0.15;
+      const final_cost = (sums.sum_cost / judgeCount) * 0.15;
+      const final_presentation = (sums.sum_presentation / judgeCount) * 0.15;
+    
+      // 6️⃣ Compute total weighted final score
+      const final_score =
+        final_creativity +
+        final_practical +
+        final_social +
+        final_cost +
+        final_presentation;
+    
+      // 7️⃣ Update the team’s final results
+      await db
+        .prepare(
+          `UPDATE teams
+           SET
+             final_creativity = ?,
+             final_practical = ?,
+             final_social = ?,
+             final_cost = ?,
+             final_presentation = ?,
+             final_score = ?
+           WHERE LOWER(team_code) = LOWER(?)`
+        )
+        .bind(
+          final_creativity,
+          final_practical,
+          final_social,
+          final_cost,
+          final_presentation,
+          final_score,
+          team_code
+        )
+        .run();
+    
+      // 8️⃣ Return calculated results for debug / confirmation
+      return jsonResponse({
+        success: true,
+        message: "Scores saved successfully",
+        judge_count: judgeCount,
+        sums,
+        final_creativity,
+        final_practical,
+        final_social,
+        final_cost,
+        final_presentation,
+        final_score,
+      });
+    }
+    
+
+    // =====================================
+    // 📊 GET SCORES (for one team/judge)
+    // =====================================
+    if (url.pathname === "/scores" && method === "GET") {
+      const judge_id = url.searchParams.get("judge_id");
+      const team_code = url.searchParams.get("team_code");
+
+      if (!judge_id || !team_code)
+        return jsonResponse({ error: "Missing parameters" }, 400);
+
+      const { results } = await db
+        .prepare(
+          "SELECT criteria_code, score FROM scores WHERE judge_id = ? AND team_code = ?"
+        )
+        .bind(judge_id, team_code)
+        .all();
+
+      if (results.length === 0) return jsonResponse({});
+
+      const scoresObj = {};
+      results.forEach((r) => (scoresObj[r.criteria_code] = r.score));
+
+      return jsonResponse(scoresObj);
+    }
+
+    // =====================================
+    // 📤 EXPORT CSV
+    // =====================================
+    if (url.pathname === "/export" && method === "GET") {
+      const { results } = await db.prepare(`
+        SELECT 
+          s.team_code,
+          t.team_name,
+          j.judge_name,
+          AVG(s.score) AS avg_score,
+          t.final_score
+        FROM scores s
+        LEFT JOIN teams t ON s.team_code = t.team_code
+        LEFT JOIN judges j ON s.judge_id = j.judge_id
+        GROUP BY s.team_code, s.judge_id
+        ORDER BY s.team_code
+      `).all();
+
+      if (!results.length)
+        return new Response("No data found.", {
+          status: 404,
+          headers: corsHeaders,
+        });
+
+      let csv =
+        "Team Code,Team Name,Judge Name,Average Score,Team Final Score\n";
+      results.forEach((r) => {
+        csv += `${r.team_code},"${r.team_name}","${r.judge_name}",${r.avg_score.toFixed(
+          2
+        )},${r.final_score?.toFixed(2) || 0}\n`;
+      });
+
+      return new Response(csv, {
+        headers: {
+          "Content-Type": "text/csv",
+          "Content-Disposition":
+            'attachment; filename="scores_export.csv"',
+          ...corsHeaders,
+        },
+      });
+ 
+    }
+    // =====================================
+    // 🧍 DEFAULT ROUTE
+    // =====================================
+    return new Response("✅ Judging System API is running.", {
+      headers: corsHeaders,
+    });
+  },
+};
