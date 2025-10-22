@@ -58,9 +58,17 @@
 
     const teamSelect = document.getElementById("teamSelect");
     const formDiv = document.getElementById("criteriaForm");
+    let criteriaList = [];
 
-    async function loadData() {
-      const teams = await fetch(API + "/teams").then(r => r.json());
+    // Load teams and criteria once on startup
+    async function init() {
+      // Load criteria (static)
+      const criteriaRes = await fetch(API + "/criteria");
+      criteriaList = await criteriaRes.json();
+
+      // Load teams
+      const teamsRes = await fetch(API + "/teams");
+      const teams = await teamsRes.json();
       teams.forEach(t => {
         const opt = document.createElement("option");
         opt.value = t.team_code;
@@ -68,33 +76,84 @@
         teamSelect.appendChild(opt);
       });
 
-      const criteria = await fetch(API + "/criteria").then(r => r.json());
-      formDiv.innerHTML = criteria.map(c => `
+      // Set up team change listener
+      teamSelect.addEventListener("change", () => {
+        if (teamSelect.value) {
+          loadTeamScores(teamSelect.value);
+        } else {
+          formDiv.innerHTML = "";
+        }
+      });
+
+      // Trigger initial load if a team is pre-selected (optional)
+    }
+
+    // Load and display scores for selected team
+    async function loadTeamScores(team_code) {
+      // Reset form
+      formDiv.innerHTML = criteriaList.map(c => `
         <label>${c.criteria_name} (${c.criteria_code})
-          <input type="range" id="${c.criteria_code}" min="0" max="10" step="0.5" value="5">
-          <span class="score-display" id="disp_${c.criteria_code}">5</span>
+          <input type="range" id="${c.criteria_code}" min="0" max="10" step="1" value="0">
+          <span class="score-display" id="disp_${c.criteria_code}">0</span>
         </label>
       `).join("");
 
-      criteria.forEach(c => {
+      // Attach live update
+      criteriaList.forEach(c => {
         const slider = document.getElementById(c.criteria_code);
         const disp = document.getElementById("disp_" + c.criteria_code);
         slider.oninput = () => disp.textContent = slider.value;
       });
+
+      // Fetch existing scores
+      try {
+        const res = await fetch(`${API}/scores?judge_id=${judge_id}&team_code=${team_code}`);
+        const existing = await res.json();
+
+        if (existing && Object.keys(existing).length > 0) {
+          // Show alert
+          const alertDiv = document.createElement("div");
+          alertDiv.className = "alert";
+          alertDiv.textContent = "✅ Already scored — you may update and resave.";
+          formDiv.prepend(alertDiv);
+
+          // Fill sliders with saved values
+          criteriaList.forEach(c => {
+            const saved = existing[c.criteria_code];
+            if (saved !== undefined) {
+              const slider = document.getElementById(c.criteria_code);
+              slider.value = saved;
+              document.getElementById("disp_" + c.criteria_code).textContent = saved;
+            }
+          });
+        }
+      } catch (err) {
+        console.warn("Could not load existing scores", err);
+      }
     }
 
     async function saveScores() {
       const team_code = teamSelect.value;
       if (!team_code) return alert("Please select a team.");
+
       const scores = {};
-      document.querySelectorAll("input[type=range]").forEach(i => scores[i.id] = parseFloat(i.value));
+      document.querySelectorAll("input[type=range]").forEach(i => {
+        scores[i.id] = parseFloat(i.value);
+      });
+
       const res = await fetch(API + "/scores", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ judge_id, team_code, scores }),
       });
+
       const data = await res.json();
-      if (data.success) alert("✅ Scores saved!");
+      if (data.success) {
+        alert("✅ Scores saved!");
+        // Optional: disable editing after save (but you want to allow edits, so skip)
+      } else {
+        alert("❌ Save failed: " + (data.error || "Unknown error"));
+      }
     }
 
     async function exportCSV() {
@@ -106,7 +165,8 @@
       window.location.href = "index.html";
     }
 
-    loadData();
+    // Start app
+    init();
   </script>
 </body>
 </html>
