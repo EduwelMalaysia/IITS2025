@@ -6,14 +6,30 @@
   <title>Judging Dashboard</title>
   <style>
     body { font-family:"Segoe UI",Arial; background:#f4f6fa; margin:0; color:#333; }
-    header { background:#004aad; color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; }
-    main { max-width:900px; margin:30px auto; background:white; padding:30px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.1); }
+    header {
+      background:#004aad; color:white; padding:15px 25px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    main {
+      max-width:900px; margin:30px auto; background:white;
+      padding:30px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    }
     h2 { color:#fff; margin:0; }
     label { display:block; margin-top:15px; font-weight:500; }
-    select,input[type=range]{width:100%; padding:8px; border:1px solid #ccc; border-radius:8px; font-size:15px; margin-top:5px;}
-    button { margin-top:20px; background:#007bff; color:white; border:none; border-radius:8px; padding:12px 20px; font-weight:600; cursor:pointer;}
+    select,input[type=range] {
+      width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;
+      font-size:15px; margin-top:5px;
+    }
+    button {
+      margin-top:20px; background:#007bff; color:white; border:none;
+      border-radius:8px; padding:12px 20px; font-weight:600; cursor:pointer;
+    }
     button:hover { background:#005fcc; }
-    .score-display { background:#007bff; color:white; border-radius:50%; display:inline-block; width:35px; height:35px; line-height:35px; text-align:center; margin-left:10px; }
+    .score-display {
+      background:#007bff; color:white; border-radius:50%;
+      display:inline-block; width:35px; height:35px; line-height:35px;
+      text-align:center; margin-left:10px;
+    }
     .alert { background:#e8f9f0; padding:10px 15px; border-left:4px solid #28a745; border-radius:8px; margin-bottom:10px; color:#2d7a46; }
     .summary { margin-top:20px; background:#f0f8ff; padding:15px; border-radius:10px; border:1px solid #d0e0f5; }
     .summary span { font-weight:bold; color:#004aad; }
@@ -21,7 +37,7 @@
 </head>
 <body>
   <header>
-    <h2 id="judgeName"></h2>
+    <h2>Dashboard</h2>
     <button onclick="logout()">Logout</button>
   </header>
 
@@ -43,11 +59,9 @@
 
   <script>
     const API = "https://judging-system.yeewengloke.workers.dev";
-    const judge_id = localStorage.getItem("judge_id");
-    const judge_name = localStorage.getItem("judge_name");
+    let judge_id = localStorage.getItem("judge_id");
 
     if (!judge_id) window.location.href = "index.html";
-    document.getElementById("judgeName").textContent = `Judge: ${judge_name || judge_id}`;
 
     const teamSelect = document.getElementById("teamSelect");
     const formDiv = document.getElementById("criteriaForm");
@@ -55,112 +69,169 @@
     const finalScoreEl = document.getElementById("finalScore");
     const scoreSummary = document.getElementById("scoreSummary");
     const saveBtn = document.getElementById("saveBtn");
+
     let criteriaList = [];
 
+    // ===== INIT =====
     async function init() {
       try {
         const critRes = await fetch(API + "/criteria");
         criteriaList = await critRes.json();
+
         const teamsRes = await fetch(API + "/teams");
         const teams = await teamsRes.json();
+
         teams.forEach(t => {
           const opt = document.createElement("option");
           opt.value = t.team_code;
           opt.textContent = `${t.team_code} - ${t.team_name}`;
           teamSelect.appendChild(opt);
         });
+
         teamSelect.addEventListener("change", handleTeamChange);
-      } catch (err) { alert("Failed to load data: " + err.message); }
+      } catch (err) {
+        alert("Failed to load data: " + err.message);
+      }
     }
 
+    // ===== LOAD SCORES =====
     async function handleTeamChange() {
       const team_code = teamSelect.value;
-      if (!team_code) { formDiv.innerHTML = ""; scoreSummary.style.display = "none"; return; }
+      if (!team_code) {
+        formDiv.innerHTML = "";
+        scoreSummary.style.display = "none";
+        return;
+      }
+
       formDiv.innerHTML = "<p>Loading scores...</p>";
+
       try {
         const url = `${API}/scores?judge_id=${judge_id}&team_code=${team_code}`;
         const res = await fetch(url);
         const existingScores = await res.json();
+
         renderScoringForm(existingScores);
-        if (Object.keys(existingScores).length > 0) {
+
+        if (existingScores && existingScores.total_score !== undefined) {
+          // 🟡 If already graded — lock form
           disableFormInputs();
           showAlert("⚠️ You have already graded this team. Scores are locked.", "warning");
+
+          scoreSummary.style.display = "block";
+          totalScoreEl.textContent = existingScores.total_score.toFixed(1);
+          finalScoreEl.textContent = existingScores.final_score.toFixed(2);
         } else {
           showAlert("✅ You can now grade this team.", "success");
+          scoreSummary.style.display = "block";
         }
-      } catch { showAlert("⚠️ Could not load scores.", "warning"); renderScoringForm({}); }
+      } catch (err) {
+        showAlert("⚠️ Could not load scores. Starting new grading.", "warning");
+        renderScoringForm({});
+      }
     }
 
+    // ===== FORM RENDER =====
     function renderScoringForm(existingScores = {}) {
       formDiv.innerHTML = criteriaList.map(c => `
-        <label>${c.criteria_name} (${c.criteria_code})
+        <label>
+          ${c.criteria_name} (${c.criteria_code})
           <input type="range" id="${c.criteria_code}" min="0" max="10" step="1" value="${existingScores[c.criteria_code] ?? 0}">
           <span class="score-display" id="disp_${c.criteria_code}">${existingScores[c.criteria_code] ?? 0}</span>
-        </label>`).join("");
+        </label>
+      `).join("");
+
+      // Attach live preview
       criteriaList.forEach(c => {
         const slider = document.getElementById(c.criteria_code);
         const disp = document.getElementById("disp_" + c.criteria_code);
-        slider.oninput = () => { disp.textContent = slider.value; calculateTotals(); };
+        slider.oninput = () => {
+          disp.textContent = slider.value;
+          calculateTotals();
+        };
       });
+
       calculateTotals();
     }
 
+    // ===== CALCULATE TOTAL & FINAL SCORE =====
     function calculateTotals() {
-      const vals = {}; criteriaList.forEach(c => {
+      const vals = {};
+      criteriaList.forEach(c => {
         vals[c.criteria_code] = parseFloat(document.getElementById(c.criteria_code)?.value) || 0;
       });
+
       const total = vals.C001 + vals.C002 + vals.C003 + vals.C004 + vals.C005;
-      const final = vals.C001 * 0.15 + vals.C002 * 0.4 + vals.C003 * 0.15 + vals.C004 * 0.15 + vals.C005 * 0.15;
+      const final =
+        vals.C001 * 0.15 +
+        vals.C002 * 0.4 +
+        vals.C003 * 0.15 +
+        vals.C004 * 0.15 +
+        vals.C005 * 0.15;
+
       totalScoreEl.textContent = total.toFixed(1);
       finalScoreEl.textContent = final.toFixed(2);
       scoreSummary.style.display = "block";
     }
 
-    function showAlert(message, type="success") {
-      const old = formDiv.querySelector(".alert"); if (old) old.remove();
+    // ===== ALERT BOX =====
+    function showAlert(message, type = "success") {
+      const old = formDiv.querySelector(".alert");
+      if (old) old.remove();
       const alertDiv = document.createElement("div");
       alertDiv.className = "alert";
       if (type === "warning") {
-        alertDiv.style.borderLeftColor="#ffc107";
-        alertDiv.style.backgroundColor="#fff8e1";
-        alertDiv.style.color="#856404";
+        alertDiv.style.borderLeftColor = "#ffc107";
+        alertDiv.style.backgroundColor = "#fff8e1";
+        alertDiv.style.color = "#856404";
       }
       alertDiv.textContent = message;
       formDiv.prepend(alertDiv);
     }
 
+    // ===== DISABLE FORM =====
     function disableFormInputs() {
-      formDiv.querySelectorAll("input[type=range]").forEach(s => s.disabled = true);
+      const sliders = formDiv.querySelectorAll("input[type=range]");
+      sliders.forEach(s => s.disabled = true);
       saveBtn.disabled = true;
     }
 
+    // ===== SAVE SCORES =====
     async function saveScores() {
       const team_code = teamSelect.value;
       if (!team_code) return alert("Please select a team first.");
+
       const scores = {};
       criteriaList.forEach(c => {
         scores[c.criteria_code] = parseFloat(document.getElementById(c.criteria_code)?.value) || 0;
       });
+
       try {
         const res = await fetch(API + "/scores", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ judge_id, team_code, scores }),
         });
+
         const data = await res.json();
         if (data.success) {
           alert("✅ Scores saved successfully!");
           disableFormInputs();
           showAlert("✅ Scores saved and locked.", "success");
-        } else throw new Error(data.error || "Unknown error");
-      } catch (err) { alert("❌ Save failed: " + err.message); }
+        } else {
+          throw new Error(data.error || "Unknown error");
+        }
+      } catch (err) {
+        alert("❌ Save failed: " + err.message);
+      }
     }
 
+    // ===== LOGOUT =====
     function logout() {
-      localStorage.clear();
+      localStorage.removeItem("judge_id");
       window.location.href = "index.html";
     }
 
+    // ===== START =====
     init();
   </script>
 </body>
