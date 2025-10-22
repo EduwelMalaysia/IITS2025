@@ -63,9 +63,7 @@
       background: #fafafa;
     }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-    select, input, button {
-      font-size: 15px;
-    }
+    select, input, button { font-size: 15px; }
     select, input[type="text"] {
       width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff;
     }
@@ -73,119 +71,98 @@
     .btn {
       background: var(--btn); color: #000000; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer;
     }
-    
     .btn:hover { background: var(--btn-hover); }
 
     .btnr {
       background: var(--btnr); color: #000000; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer;
     }
-    
     .btn:hover { background: var(--btn-hover); }
 
     .btnb {
       background: var(--btnb); color: #000000; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer;
     }
-
     .btn:hover { background: var(--btn-hover); }
 
     /* Tiny helper for section toolbars */
-    .sectionbar {
-      display: flex; gap: 8px; align-items: center; margin: 10px 0 16px;
-    }
+    .sectionbar { display: flex; gap: 8px; align-items: center; margin: 10px 0 16px; }
     .spacer { flex: 1; }
 
     /* --- Assign grid: three columns: team | nav buttons | judge --- */
     .assign-grid {
       display:grid;
       grid-template-columns: 1fr auto 1fr;
-      align-items:center;            /* line up with dropdowns */
+      align-items:center;
       gap:20px;
     }
 
     /* Side-by-side dropdowns (team + judge) */
-  .assign-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    margin-top: 16px;
-  }
+    .assign-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-top: 16px;
+    }
 
-  .assign-col {
-    flex: 1; /* each takes equal width */
-  }
+    .assign-col { flex: 1; }
 
-  .assign-col select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: #fff;
-  }
+    .assign-col select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
 
-.assign-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;  /* <-- was 'end' */
-  gap: 20px;
-  margin-bottom: 16px;
-}
+    .assign-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+    .assign-top .assign-col { flex: 1; }
+    .assign-top .assign-col.right { text-align: right; }
+    .assign-top .assign-col.right select { width: 60%; }
 
-.assign-top .assign-col { flex: 1; }
-
-
-.assign-top .assign-col.right {
-  text-align: right;
-}
-
-.assign-top .assign-col.right select {
-  width: 60%;          /* makes the judge dropdown smaller and right-aligned */
-}
-
-@media (max-width: 768px) {
-  .assign-top {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .assign-top .assign-col.right select {
-    width: 100%;
-  }
-}
+    @media (max-width: 768px) {
+      .assign-top { flex-direction: column; align-items: stretch; }
+      .assign-top .assign-col.right select { width: 100%; }
+    }
 
     /* Middle column: put buttons side-by-side, centered */
-    .assign-nav{
-      display:flex !important;       /* ensure flex */
-      flex-direction:column !important; /* side-by-side, not stacked */
+    .assign-nav {
+      display:flex !important;
+      flex-direction:column !important;
       align-items:center;
       justify-content:center;
       gap:12px;
     }
 
     /* In case a global .btn makes buttons block-level */
-    .assign-nav .btn, .assign-nav button{
+    .assign-nav .btn, .assign-nav button {
       width: 120px;
       height: 42px;
       display:inline-flex !important;
       align-items:center;
       justify-content:center;
-      min-width:90px;                /* optional: consistent width */
+      min-width:90px;
     }
 
-.blank-row {
-  display: flex;
-  gap: 20px;
-  margin-top: 20px;
-  height: 60vh;                 /* overall row height proportional to screen */
-}
+    .blank-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      height: 60vh;
+    }
 
-.blank {
-  flex: 1;
-  overflow: hidden;             /* prevent layout overflow */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
+    .blank {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
 
     .btn-bar {
       display: flex;
@@ -205,82 +182,101 @@
     }
 
     /* Make team list adapt to screen height and scroll if long */
-#teamsList {
-  max-height: 50vh;             /* takes up to half the viewport height */
-  overflow-y: auto;             /* scrolls vertically when too long */
-  padding-right: 6px;           /* avoid scrollbar overlap */
-  scroll-behavior: smooth;
-}
-
-/* Optional: hide ugly scrollbar for better aesthetics (for WebKit browsers) */
-#teamsList::-webkit-scrollbar {
-  width: 6px;
-}
-#teamsList::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 6px;
-}
-#teamsList::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8;
-}
-
-
-    .radio-list .team-code {
-      font-weight: 600;
-      min-width: 80px;
-      color: #1f2937;
+    #teamsList {
+      max-height: 50vh;
+      overflow-y: auto;
+      padding-right: 6px;
+      scroll-behavior: smooth;
     }
 
-    .radio-list .team-name {
-      color: #374151;
-    }
+    /* Optional: hide ugly scrollbar for better aesthetics (for WebKit browsers) */
+    #teamsList::-webkit-scrollbar { width: 6px; }
+    #teamsList::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 6px; }
+    #teamsList::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+
+    .radio-list .team-code { font-weight: 600; min-width: 80px; color: #1f2937; }
+    .radio-list .team-name { color: #374151; }
+    .radio-list input[type=checkbox]{ transform: scale(1.1); }
 
     .assign-top{ display:flex; gap:20px; align-items:flex-end; margin-bottom:16px; }
-.assign-top .assign-col{ flex:1; }
+    .assign-top .assign-col{ flex:1; }
 
-.assign-boards{
-  display:grid;
-  grid-template-columns: 1fr auto 1fr; /* left | middle | right */
-  gap:20px;
-  align-items: stretch;
-}
+    .assign-boards{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr; /* left | middle | right */
+      gap:20px;
+      align-items: stretch;
+    }
 
-.list{
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:#fff;
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-  min-height:260px;
-}
-.list-title{ font-weight:700; color:#334155; margin:4px 6px 8px; }
+    .list{
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      min-height:260px;
+    }
+    .list-title{ font-weight:700; color:#334155; margin:4px 6px 8px; }
 
-.scroll{ overflow-y:auto; max-height:50vh; padding-right:6px; }
-.scroll::-webkit-scrollbar{ width:6px; }
-.scroll::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:6px; }
-.scroll::-webkit-scrollbar-thumb:hover{ background:#94a3b8; }
+    .scroll{ overflow-y:auto; max-height:50vh; padding-right:6px; }
+    .scroll::-webkit-scrollbar{ width:6px; }
+    .scroll::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:6px; }
+    .scroll::-webkit-scrollbar-thumb:hover{ background:#94a3b8; }
 
-.assign-nav{ display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; }
-.assign-nav button{ width:120px; height:42px; display:inline-flex; align-items:center; justify-content:center; }
+    .assign-nav{ display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; }
+    .assign-nav button{ width:120px; height:42px; display:inline-flex; align-items:center; justify-content:center; }
 
-.radio-list .radio-item{
-  display:flex; align-items:center; gap:10px;
-  padding:8px 10px; margin-bottom:8px;
-  border:1px solid var(--border); border-radius:10px; background:#fff;
-}
-.radio-list .team-code{ font-weight:600; min-width:80px; color:#1f2937; }
-.radio-list input[type=checkbox]{ transform: scale(1.1); }
+    .radio-list .radio-item{
+      display:flex; align-items:center; gap:10px;
+      padding:8px 10px; margin-bottom:8px;
+      border:1px solid var(--border); border-radius:10px; background:#fff;
+    }
+    .radio-list .team-code{ font-weight:600; min-width:80px; color:#1f2937; }
+    .radio-list input[type=checkbox]{ transform: scale(1.1); }
 
-@media (max-width:820px){
-  .assign-top{ flex-direction:column; align-items:stretch; }
-  .assign-boards{ grid-template-columns: 1fr; }
-  .assign-nav{ flex-direction:row; }
-}
+    @media (max-width:820px){
+      .assign-top{ flex-direction:column; align-items:stretch; }
+      .assign-boards{ grid-template-columns: 1fr; }
+      .assign-nav{ flex-direction:row; }
+    }
 
+    /* START MICKY */
+
+    /* Score Viewer Tab */
+    .team-card {
+      border: 1px solid #ddd;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    .team-card h3 { margin-top: 0; color: #2c3e50; }
+    .btn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #2980b9; }
+    .empty, .error { color: #e74c3c; font-style: italic; }
+
+    .teams-table select {
+      width: 100%;
+      padding: 4px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+    }
+    .teams-table select:hover { border-color: #94a8ff; }
+
+    /* END MICKY */
 
   </style>
-
 </head>
 <body>
   <header>
@@ -299,209 +295,145 @@
       <button id="btnJudges" class="tbtn" role="tab" aria-controls="panelJudges" aria-selected="false">Judge List</button>
     </div>
 
-<section id="panelAssign" class="panel card" role="tabpanel" aria-labelledby="btnAssign">
-  <h2>Assign Teams</h2>
+    <section id="panelAssign" class="panel card" role="tabpanel" aria-labelledby="btnAssign">
+      <h2>Assign Teams</h2>
 
-  <!-- Top row: Team Categories (left) + Judge Names (right) -->
-  <div class="assign-top">
-    <div class="assign-col">
-      <label class="muted" for="category">Team Categories</label>
-      <select id="category">
-        <option value="">— Select a category —</option>
-        <option value="IITS Primary">IITS Primary</option>
-        <option value="Secondary Group">Secondary Group</option>
-        <option value="Friendship Exchange">Friendship Exchange</option>
-      </select>
-    </div>
+      <!-- Top row: Team Categories (left) + Judge Names (right) -->
+      <div class="assign-top">
+        <div class="assign-col">
+          <label class="muted" for="category">Team Categories</label>
+          <select id="category">
+            <option value="">— Select a category —</option>
+            <option value="IITS Primary">IITS Primary</option>
+            <option value="Secondary Group">Secondary Group</option>
+            <option value="Friendship Exchange">Friendship Exchange</option>
+          </select>
+        </div>
 
-    <div class="assign-col">
-      <label class="muted" for="judgeSelect">Judge Names</label>
-      <select id="judgeSelect">
-        <option value="">— Select judge —</option>
-        <!-- filled by JS -->
-      </select>
-    </div>
-  </div>
-
-  <!-- Boards: Available | Buttons | Assigned (under judge) -->
-  <div class="assign-boards">
-    <!-- LEFT: Available teams (checkbox, multi-select) -->
-    <div class="list">
-      <div class="list-title">Available Teams</div>
-      <div id="teamsList" class="radio-list scroll"></div>
-    </div>
-
-    <!-- MIDDLE: Buttons -->
-    <div class="assign-nav">
-      <button class="btnb" id="btnAdd">➡️ Add</button>
-      <button class="btnr" id="btnRemove">⬅️ Remove</button>
-      <button type="button" id="btnSave" class="btnb">💾 Save</button>
-    </div>
-
-    <!-- RIGHT: Assigned to selected judge (for selected category) -->
-    <div class="list">
-      <div class="list-title">
-        Assigned <span id="assignedHeaderSuffix" class="muted"></span>
+        <div class="assign-col">
+          <label class="muted" for="judgeSelect">Judge Names</label>
+          <select id="judgeSelect">
+            <option value="">— Select judge —</option>
+            <!-- filled by JS -->
+          </select>
+        </div>
       </div>
-      <div id="assignedList" class="radio-list scroll"></div>
+
+      <!-- Boards: Available | Buttons | Assigned (under judge) -->
+      <div class="assign-boards">
+        <!-- LEFT: Available teams (checkbox, multi-select) -->
+        <div class="list">
+          <div class="list-title">Available Teams</div>
+          <div id="teamsList" class="radio-list scroll"></div>
+        </div>
+
+        <!-- MIDDLE: Buttons -->
+        <div class="assign-nav">
+          <button class="btnb" id="btnAdd">➡️ Add</button>
+          <button class="btnr" id="btnRemove">⬅️ Remove</button>
+          <button type="button" id="btnSave" class="btnb">💾 Save</button>
+        </div>
+
+        <!-- RIGHT: Assigned to selected judge (for selected category) -->
+        <div class="list">
+          <div class="list-title">
+            Assigned <span id="assignedHeaderSuffix" class="muted"></span>
+          </div>
+          <div id="assignedList" class="radio-list scroll"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- If you want middle buttons + right list later, add them below as a separate row -->
+    <!-- <div class="assign-boards"> ... </div> -->
+    </section>
+
+    <!-- <div class="blank" id="teamsBox">
+      <div id="teamsList" class="radio-list"></div>
+    </div> -->
+
+    <!-- Right box: judges -->
+    <!-- <div class="blank" id="judgesBox">
+      <select id="judgeSelect">
+        <option>Judge 1</option>
+        <option>Judge 2</option>
+      </select>
     </div>
   </div>
-</section>
-
-  <!-- If you want middle buttons + right list later, add them below as a separate row -->
-  <!-- <div class="assign-boards"> ... </div> -->
-</section>
-
-
-
-
-
-<!-- <div class="blank" id="teamsBox">
-    <div id="teamsList" class="radio-list"></div>
-  </div> -->
-
-
-  <!-- Right box: judges -->
-  <!-- <div class="blank" id="judgesBox">
-    <select id="judgeSelect">
-      <option>Judge 1</option>
-      <option>Judge 2</option>
-    </select>
-  </div>
-</div>
 </div> -->
 
-</section>
+    </section>
+
     <section id="panelViewer" class="panel card" role="tabpanel" aria-labelledby="btnViewer">
       <h2>Score Viewer</h2>
       <div class="muted">Filter by team or judge to view saved scores. (This is a placeholder.)</div>
 
       <div class="sectionbar">
-        <select><option>Filter by team (coming soon)</option></select>
-        <select><option>Filter by judge (coming soon)</option></select>
+        <label class="muted" for="viewer-category">Team Categories</label>
+        <select id="viewer-category">
+          <option value="">— Select a category —</option>
+          <option value="IITS PRIMARY GROUP">IITS PRIMARY GROUP</option>
+          <option value="IITS SECONDARY GROUP">IITS SECONDARY GROUP</option>
+          <option value="FRIENDSHIP EXCHANGE">FRIENDSHIP EXCHANGE</option>
+        </select>
         <div class="spacer"></div>
         <button class="btnr">⬇️ Export CSV</button>
       </div>
 
-      <div class="blank">
-        A read-only table of scores will appear here once connected.
-      </div>
+      <div class="team-list"></div>
     </section>
 
-    <section id="panelTeams" class="panel card" role="tabpanel" aria-labelledby="btnTeams">
-      <h2>Team List</h2>
-      <div class="muted">Browse and search teams. (Placeholder list/search UI.)</div>
+    <section>
+      <div class="sectionbar" id="newTeamBar">…</div>
+      <section id="teamListPanel">…</section>
 
-      <div class="sectionbar">
-        <input type="text" placeholder="Search teams…" />
-        <div class="spacer"></div>
-        <button class="tbtn" >⟳ Refresh</button>
-        <input type="text" placeholder="New team..."  />
-        <div class="spacer"></div>
-        <button class="tbtn" >➕ Add</button>
-      </div>
+      <section id="panelTeams" class="panel card" role="tabpanel" aria-labelledby="btnTeams">
+        <h2>Team List</h2>
+        <div class="muted">Browse and search teams.</div>
 
-      <div class="blank">
-        Teams table will render here.
-      </div>
+        <div class="sectionbar" id="newTeamBar" style="gap:.5rem; align-items:center;">
+          <button class="tbtn" id="btnTeamRefresh">⟳ Refresh</button>
+          <input id="nt_team_code" type="text" placeholder="Team code (e.g. T-012)" style="max-width:10rem;">
+          <input id="nt_team_name" type="text" placeholder="Team name" style="min-width:14rem;">
+          <input id="nt_category"  type="text" placeholder="Category (e.g. Automation)" style="max-width:14rem;">
+          <button class="tbtn" id="nt_submit">➕ Add</button>
+          <div class="spacer"></div>
+          <span id="newTeamStatus" class="muted" style="min-width:12rem;"></span>
+        </div>
+
+        <section id="teamListPanel" style="margin-top:1rem;">
+          <div id="teamListStatus" style="font-size:0.9rem;color:#666;"></div>
+          <div id="teamListContainer" style="overflow:auto; max-height:420px; border:1px solid #ddd; border-radius:8px;"></div>
+        </section>
+      </section>
     </section>
 
     <section id="panelJudges" class="panel card" role="tabpanel" aria-labelledby="btnJudges">
-      <h2>Judge List</h2>
-      <div class="muted">Browse and search judges. (Placeholder list/search UI.)</div>
+      <div class="sectionbar" id="newJudgeBar" style="gap:.5rem; align-items:center;">
+        <button class="tbtn" id="btnJudgesRefresh">⟳ Refresh</button>
 
-      <div class="sectionbar">
-        <input type="text" placeholder="Search judges…" />
+        <input id="nj_judge_id" type="text" placeholder="JUDGE ID (e.g. J-001)" style="max-width:8rem;">
+        <input id="nj_judge_name" type="text" placeholder="JUDGE NAME" style="max-width:14rem;">
+
+        <button class="tbtn" id="nj_submit">➕ Add</button>
+
         <div class="spacer"></div>
-        <button class="tbtn" >⟳ Refresh</button>
-        <input type="text" placeholder="New judge..." />
-        <div class="spacer"></div>
-        <button class="tbtn" >➕ Add</button>
+        <span id="newJudgeStatus" class="muted" style="min-width:12rem;"></span>
       </div>
 
-      <div class="blank">
-        Judges table will render here.
-      </div>
+      <section id="judgeListPanel" style="margin-top:1rem;">
+        <div id="judgeListStatus" style="font-size:0.9rem;color:#666;"></div>
+        <div id="judgeListContainer" style="overflow:auto; max-height:420px; border:1px solid #ddd; border-radius:8px;"></div>
+      </section>
     </section>
   </main>
 
   <script>
-  const API = "https://judging-system.yeewengloke.workers.dev";
-  let judge_id = localStorage.getItem("judge_id");
+    const API = "https://judging-system.yeewengloke.workers.dev";
 
-  const catSel = document.getElementById("category");
-  const teamsList = document.getElementById("teamsList");
-
-  // render helper
-  function renderTeamsRadios(teams) {
-    if (!Array.isArray(teams) || teams.length === 0) {
-      teamsList.innerHTML = `<div class="muted" style="padding:10px 0;">No teams for this category yet.</div>`;
-      return;
-    }
-
-    // name="teamPick" makes them mutually exclusive (radio behavior)
-    teamsList.innerHTML = teams.map(t => `
-      <label class="radio-item">
-        <input type="checkbox" name="teamPick" value="${t.team_code}">
-        <span class="team-code">${t.team_code}</span>
-        <span class="team-name">${t.team_name ?? ""}</span>
-      </label>
-      `).join("");
-    }
-
-  // load teams for selected category
-const teamsByCategory = {}; // store separate lists for each category
-
-async function loadTeamsForCategory(category) {
-  if (teamsByCategory[category]) {
-    // Already loaded before — just render from memory
-    renderTeamsRadios(teamsByCategory[category]);
-    return;
-  }
-
-  teamsList.innerHTML = `<div class="muted" style="padding:10px 0;">Loading…</div>`;
-  try {
-    const url = new URL(`${API}/teams`);
-    if (category) url.searchParams.set("category", category);
-    const res = await fetch(url);
-    const data = await res.json();
-
-    // Apply prefix filter
-    let prefix = "";
-    if (category === "IITS Primary") prefix = "IP";
-    else if (category === "Secondary Group") prefix = "IS";
-    else if (category === "Friendship Exchange") prefix = "FE";
-
-    const filtered = data.filter(t => (t.team_code || "").startsWith(prefix));
-
-    // Cache it
-    teamsByCategory[category] = filtered;
-    renderTeamsRadios(filtered);
-  } catch (e) {
-    console.error(e);
-    teamsList.innerHTML = `<div class="muted" style="padding:10px 0; color:#b91c1c;">Failed to load teams.</div>`;
-  }
-}
-
-catSel.addEventListener("change", () => {
-  const category = catSel.value;
-  if (!category) return;
-
-  // Don’t erase others — just render the one selected
-  loadTeamsForCategory(category);
-});
-
-
-// optional: preload a default category
-// catSel.value = "IITS Primary";
-// loadTeamsForCategory(catSel.value);
-
-// reading the chosen team later:
-function getSelectedTeamCode() {
-  const checked = document.querySelector('input[name="teamPick"]:checked');
-  return checked ? checked.value : "";
-}
-    // Basic panel toggler: activate only the one you click, keep others blank/hidden.
+    /* ===============================
+       1. Panel Switching (Toolbar)
+    ================================*/
     const tabs = [
       { btn: 'btnAssign', panel: 'panelAssign' },
       { btn: 'btnViewer', panel: 'panelViewer' },
@@ -509,8 +441,27 @@ function getSelectedTeamCode() {
       { btn: 'btnJudges', panel: 'panelJudges' },
     ];
 
+    async function populateAssignJudgeDropdown() {
+      if (!judgeSel) return;
+      // show a loading option
+      judgeSel.innerHTML = `<option value="">Loading…</option>`;
+      try {
+        const res = await fetch(JUDGES_API, { headers: { 'Accept': 'application/json' }});
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : (data.results || data.judges || []);
+
+        judgeSel.innerHTML = `<option value="">— Select judge —</option>` +
+          list.map(j => {
+            const label = j.judge_name || j.username || j.judge_id;
+            return `<option value="${j.judge_id}">${label}</option>`;
+          }).join("");
+      } catch (e) {
+        console.error(e);
+        judgeSel.innerHTML = `<option value="">Failed to load judges</option>`;
+      }
+    }
+
     function showPanel(panelId, btnId) {
-      // toggle buttons
       tabs.forEach(({btn}) => {
         const el = document.getElementById(btn);
         if (!el) return;
@@ -518,7 +469,6 @@ function getSelectedTeamCode() {
         el.classList.toggle('active', active);
         el.setAttribute('aria-selected', active ? 'true' : 'false');
       });
-      // toggle panels
       tabs.forEach(({panel}) => {
         const el = document.getElementById(panel);
         if (!el) return;
@@ -526,96 +476,825 @@ function getSelectedTeamCode() {
       });
     }
 
-    // Wire up clicks
     tabs.forEach(({btn, panel}) => {
       const b = document.getElementById(btn);
       b?.addEventListener('click', () => showPanel(panel, btn));
-      // keyboard access (Enter/Space)
       b?.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showPanel(panel, btn); }
       });
     });
 
-async function loadJudges() {
-  const judgeSel = document.getElementById("judgeSelect");
-  judgeSel.innerHTML = `<option value="">Loading…</option>`;
-  try {
-    const res = await fetch("https://judging-system.yeewengloke.workers.dev/judges");
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
+    // Optionally open Assign tab on load
+    showPanel('panelAssign', 'btnAssign');
 
-    // Populate dropdown
-    judgeSel.innerHTML =
-      `<option value="">— Select judge —</option>` +
-      data.map(j => `<option value="${j.judge_id}">${j.judge_name}</option>`).join("");
-  } catch (err) {
-    console.error(err);
-    judgeSel.innerHTML = `<option value="">Failed to load judges</option>`;
-  }
-}
-
-// Load judges once the page is ready
-window.addEventListener("DOMContentLoaded", loadJudges);
-    // Start blank: no panel active at load.
-    // (If you prefer a default, uncomment the next line)
-    // showPanel('panelAssign', 'btnAssign');
-
-    // Logout placeholder (hook to your real logic)
-    
-    // collect checked team codes from the left list
-    function getCheckedTeamCodes() {
-  return Array.from(document.querySelectorAll('#teamsList input[type="checkbox"]:checked'))
-    .map(cb => cb.value);
-}
-
-const saveBtn  = document.getElementById("btnSave");
-const judgeSel = document.getElementById("judgeSelect");
-
-function getCheckedTeamCodes() {
-  return Array.from(document.querySelectorAll('#teamsList input[type="checkbox"]:checked'))
-    .map(cb => cb.value);
-}
-
-async function saveAssignments() {
-  const judge_id = judgeSel.value;
-  if (!judge_id) { alert("Please select a judge."); return; }
-
-  const team_codes = getCheckedTeamCodes();
-  if (team_codes.length === 0) { alert("Please select at least one team."); return; }
-
-  try {
-    const res = await fetch(`${API}/assigned-teams`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ judge_id, team_codes })
+    // When switching tabs, if Team List tab is clicked, load teams
+    document.getElementById('btnTeams')?.addEventListener('click', () => {
+      loadTeams();
     });
 
-    const data = await res.json().catch(() => ({}));
+    document.getElementById('btnTeamRefresh')?.addEventListener('click', loadTeams);
 
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || `HTTP ${res.status}`);
+    let teamListLoadedOnce = false;
+    document.getElementById('btnTeams')?.addEventListener('click', () => {
+      if (!teamListLoadedOnce) {
+        teamListLoadedOnce = true;
+        loadTeams();
+      }
+    });
+
+    document.getElementById('btnAssign')?.addEventListener('click', () => {
+      populateAssignJudgeDropdown();
+    });
+
+    // If you have an Assign refresh button:
+    document.getElementById('btnAssignRefresh')?.addEventListener('click', () => {
+      populateAssignJudgeDropdown();
+    });
+
+    /* ===============================
+       2. Assign Teams Logic
+    ================================*/
+    const catSel      = document.getElementById("category");
+    const judgeSel    = document.getElementById("judgeSelect");
+    const teamsListEl = document.getElementById("teamsList");     // left
+    const assignedEl  = document.getElementById("assignedList");  // right
+    const headerSuffix= document.getElementById("assignedHeaderSuffix");
+    const btnAdd      = document.getElementById("btnAdd");
+    const btnRemove   = document.getElementById("btnRemove");
+
+    const teamsByCategory = {};
+    const assignedByJudge = {};
+    let availableTeams = [];
+    let currentCategory = "";
+    let currentJudgeId  = "";
+
+    // --- utilities ---
+    function prefixForCategory(cat){
+      if (cat === "IITS Primary") return "IP";
+      if (cat === "Secondary Group") return "IS";
+      if (cat === "Friendship Exchange") return "FE";
+      return "";
+    }
+    function teamRow(t, name){
+      return `
+    <label class="radio-item">
+      <input type="checkbox" name="${name}" value="${t.team_code}">
+      <span class="team-code">${t.team_code}</span>
+      <span class="team-name">${t.team_name ?? ""}</span>
+    </label>`;
+    }
+    function renderLeft(){
+      teamsListEl.innerHTML = availableTeams.length
+        ? availableTeams.map(t => teamRow(t,"leftPick")).join("")
+        : `<div class="muted" style="padding:8px 0;">No available teams.</div>`;
+    }
+    function renderRight(){
+      const allAssigned = assignedByJudge[currentJudgeId] || [];
+      const pref = prefixForCategory(currentCategory);
+      const rightForCategory = allAssigned.filter(t => (t.team_code || "").startsWith(pref));
+      assignedEl.innerHTML = rightForCategory.length
+        ? rightForCategory.map(t => teamRow(t,"rightPick")).join("")
+        : `<div class="muted" style="padding:8px 0;">No teams assigned to this judge for ${currentCategory || "this category"}.</div>`;
+      headerSuffix.textContent = currentJudgeId
+        ? `for ${currentCategory || "category"}`
+        : "";
+    }
+    function getCheckedValues(name){
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(x => x.value);
+    }
+    function uniqueByTeam(arr){
+      const m = new Map();
+      arr.forEach(t => m.set(t.team_code, t));
+      return Array.from(m.values());
     }
 
-    alert(`✅ Saved ${team_codes.length} assignment(s).`);
+    //START MICKY
 
-    // optional: uncheck boxes
-    document.querySelectorAll('#teamsList input[type="checkbox"]:checked')
-      .forEach(cb => (cb.checked = false));
+    // DOM elements
+    const viewerCategorySelect = document.getElementById('viewer-category');
+    const viewerteamListContainer = document.querySelector('.team-list');
+    const exportBtn = document.querySelector('#panelViewer .btnr');
 
-  } catch (err) {
-    console.error("Save failed:", err);
-    alert("❌ Failed to save assignments. See console.");
-  }
-}
+    let allTeams = [];
 
-saveBtn?.addEventListener("click", saveAssignments);
+    async function fetchTeams() {
+      try {
+        const res = await fetch(`${API}/teams`);
+        if (!res.ok) throw new Error('Failed to load teams');
+        allTeams = await res.json();
+        renderTeams(allTeams);
+      } catch (err) {
+        console.error(err);
+        viewerteamListContainer.innerHTML = `<p class="error">❌ Failed to load teams.</p>`;
+      }
+    }
+    function renderTeams(teams) {
+      if (!teams || teams.length === 0) {
+        viewerteamListContainer.innerHTML = '<p class="empty">No teams found.</p>';
+        return;
+      }
 
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-  // localStorage.removeItem("judge_id");
-  // window.location.href = "index.html";
-  alert('Logout clicked (wire this to your auth).');
-});
+      const awardOptions = [
+        "", // empty = no award
+        "champion",
+        "1st runner up",
+        "2nd runner up",
+        "3rd runner up",
+        "4th runner up",
+        "The Best Presentation Award",
+        "The Outstanding Tech Award",
+        "The Most Popular Award",
+        "The Sustainability Idea Award",
+        "The Entrepreneurial Award"
+      ];
 
+      const gradeOptions = ["", "titanium", "gold", "silver", "bronze"];
+
+      const rows = teams.map(team => {
+        const currentAward = team.award || "";
+        const currentGrade = team.grade || "";
+
+        const awardSelect = `
+          <select class="award-select" data-team-code="${team.team_code}">
+            ${awardOptions.map(opt => 
+              `<option value="${opt}" ${opt === currentAward ? 'selected' : ''}>
+                ${opt || "— No award —"}
+              </option>`
+            ).join('')}
+          </select>
+        `;
+
+        const gradeSelect = `
+          <select class="grade-select" data-team-code="${team.team_code}">
+            ${gradeOptions.map(opt => 
+              `<option value="${opt}" ${opt === currentGrade ? 'selected' : ''}>
+                ${opt || "— No grade —"}
+              </option>`
+            ).join('')}
+          </select>
+        `;
+
+        return `
+          <tr data-team-code="${team.team_code}">
+            <td>${team.team_code || '—'}</td>
+            <td>${team.team_name || '—'}</td>
+            <td>${team.category || '—'}</td>
+            <td>${(team.final_creativity != null) ? team.final_creativity.toFixed(2) : '—'}</td>
+            <td>${(team.final_practical != null) ? team.final_practical.toFixed(2) : '—'}</td>
+            <td>${(team.final_social != null) ? team.final_social.toFixed(2) : '—'}</td>
+            <td>${(team.final_cost != null) ? team.final_cost.toFixed(2) : '—'}</td>
+            <td>${(team.final_presentation != null) ? team.final_presentation.toFixed(2) : '—'}</td>
+            <td><strong>${(team.final_score != null) ? team.final_score.toFixed(2) : '—'}</strong></td>
+            <td>${awardSelect}</td>
+            <td>${gradeSelect}</td>
+          </tr>
+        `;
+      }).join('');
+
+      viewerteamListContainer.innerHTML = `
+        <div style="overflow-x: auto;">
+          <table class="teams-table">
+            <thead>
+              <tr>
+                <th>Team Code</th>
+                <th>Team Name</th>
+                <th>Category</th>
+                <th>Creativity</th>
+                <th>Practical</th>
+                <th>Social</th>
+                <th>Cost</th>
+                <th>Presentation</th>
+                <th>Final Score</th>
+                <th>Award</th>
+                <th>Grade</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      // Add event listeners to all award/grade dropdowns
+      viewerteamListContainer.querySelectorAll('.award-select').forEach(select => {
+        select.addEventListener('change', handleAwardChange);
+      });
+
+      viewerteamListContainer.querySelectorAll('.grade-select').forEach(select => {
+        select.addEventListener('change', handleGradeChange);
+      });
+    }
+
+    viewerCategorySelect?.addEventListener('change', () => {
+      const selectedCategory = viewerCategorySelect.value;
+      if (!selectedCategory) {
+        renderTeams(allTeams);
+      } else {
+        const filtered = allTeams.filter(team => 
+          team.category === selectedCategory
+        );
+        renderTeams(filtered);
+      }
+    });
+
+    // Save award
+    async function handleAwardChange(e) {
+      const teamCode = e.target.dataset.teamCode;
+      const award = e.target.value || null; // null if empty
+
+      try {
+        const res = await fetch(`${API}/teams/${teamCode}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ award })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        console.log(`Award saved for ${teamCode}:`, award || "none");
+      } catch (err) {
+        console.error("Failed to save award:", err);
+        alert("❌ Failed to save award. Check console.");
+        // Revert UI (optional)
+      }
+    }
+
+    // Save grade
+    async function handleGradeChange(e) {
+      const teamCode = e.target.dataset.teamCode;
+      const grade = e.target.value || null;
+
+      try {
+        const res = await fetch(`${API}/teams/${teamCode}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ grade })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        console.log(`Grade saved for ${teamCode}:`, grade || "none");
+      } catch (err) {
+        console.error("Failed to save grade:", err);
+        alert("❌ Failed to save grade. Check console.");
+      }
+    }
+
+    exportBtn?.addEventListener('click', () => {
+      if (!allTeams || allTeams.length === 0) {
+        alert("No teams to export.");
+        return;
+      }
+
+      // Define columns in order
+      const headers = [
+        "Team Code",
+        "Team Name",
+        "Category",
+        "Creativity",
+        "Practical",
+        "Social",
+        "Cost",
+        "Presentation",
+        "Final Score",
+        "Award",
+        "Grade"
+      ];
+
+      // Build CSV rows
+      const rows = allTeams.map(team => {
+        return [
+          `"${(team.team_code || '').replace(/"/g, '""')}"`,
+          `"${(team.team_name || '').replace(/"/g, '""')}"`,
+          `"${(team.category || '').replace(/"/g, '""')}"`,
+          team.final_creativity != null ? team.final_creativity.toFixed(2) : "",
+          team.final_practical != null ? team.final_practical.toFixed(2) : "",
+          team.final_social != null ? team.final_social.toFixed(2) : "",
+          team.final_cost != null ? team.final_cost.toFixed(2) : "",
+          team.final_presentation != null ? team.final_presentation.toFixed(2) : "",
+          team.final_score != null ? team.final_score.toFixed(2) : "",
+          `"${(team.award || '').replace(/"/g, '""')}"`,
+          `"${(team.grade || '').replace(/"/g, '""')}"`,
+        ].join(",");
+      });
+
+      const csvContent = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "score_viewer_export.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+
+    // Load on init
+    fetchTeams();
+
+    //END MICKY 
+
+    // --- load data ---
+    async function loadJudges(){
+      try {
+        const res = await fetch(`${API}/judges`);
+        const data = await res.json();
+        judgeSel.innerHTML = `<option value="">— Select judge —</option>` +
+          data.map(j => `<option value="${j.judge_id}">${j.judge_name || j.judge_id}</option>`).join("");
+      } catch (e) {
+        console.error(e);
+        judgeSel.innerHTML = `<option value="">Failed to load judges</option>`;
+      }
+    }
+
+    async function loadTeamsForCategory(category){
+      if (!teamsByCategory[category]){
+        const url = new URL(`${API}/teams`);
+        url.searchParams.set("category", category);
+        const res = await fetch(url);
+        const data = await res.json();
+        const pref = prefixForCategory(category);
+        teamsByCategory[category] = data.filter(t => (t.team_code || "").startsWith(pref));
+      }
+
+      currentCategory = category;
+      const pref = prefixForCategory(category);
+      const allInCat = teamsByCategory[category] || [];
+      const assignedSet = new Set((assignedByJudge[currentJudgeId] || [])
+        .filter(t => (t.team_code || "").startsWith(pref))
+        .map(t => t.team_code));
+      availableTeams = allInCat.filter(t => !assignedSet.has(t.team_code));
+
+      renderLeft();
+      renderRight();
+    }
+
+    // --- add/remove actions ---
+    btnAdd.addEventListener("click", async () => {
+      if (!currentJudgeId){ alert("Please select a judge."); return; }
+      if (!currentCategory){ alert("Please select a category."); return; }
+
+      const picks = getCheckedValues("leftPick");
+      if (picks.length === 0){ alert("Select one or more teams on the left."); return; }
+
+      const move = availableTeams.filter(t => picks.includes(t.team_code));
+      assignedByJudge[currentJudgeId] = uniqueByTeam([
+        ...(assignedByJudge[currentJudgeId] || []),
+        ...move
+      ]);
+      availableTeams = availableTeams.filter(t => !picks.includes(t.team_code));
+
+      renderLeft();
+      renderRight();
+    });
+
+    btnRemove.addEventListener("click", async () => {
+      if (!currentJudgeId){ alert("Please select a judge."); return; }
+      if (!currentCategory){ alert("Please select a category."); return; }
+
+      const picks = getCheckedValues("rightPick");
+      if (picks.length === 0){ alert("Select one or more teams on the right."); return; }
+
+      const allInCat = teamsByCategory[currentCategory] || [];
+      const moveBack  = allInCat.filter(t => picks.includes(t.team_code));
+      availableTeams  = uniqueByTeam([...availableTeams, ...moveBack]);
+
+      assignedByJudge[currentJudgeId] = (assignedByJudge[currentJudgeId] || [])
+        .filter(t => !picks.includes(t.team_code));
+
+      renderLeft();
+      renderRight();
+    });
+
+    // --- wiring ---
+    catSel.addEventListener("change", () => {
+      const cat = catSel.value;
+      if (!cat) return;
+      loadTeamsForCategory(cat);
+    });
+    judgeSel.addEventListener("change", () => {
+      currentJudgeId = judgeSel.value || "";
+      if (currentCategory) loadTeamsForCategory(currentCategory);
+    });
+
+    // --- init ---
+    loadJudges();
+
+    // --- Save assignments to database ---
+    const btnSave = document.getElementById("btnSave");
+
+    async function saveAssignments() {
+      if (!currentJudgeId) { alert("Please select a judge."); return; }
+
+      // collect all assigned teams for that judge (across all categories)
+      const assignedTeams = assignedByJudge[currentJudgeId] || [];
+      const team_codes = assignedTeams.map(t => t.team_code);
+
+      if (team_codes.length === 0) {
+        alert("No teams assigned to this judge yet.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/assigned-teams`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ judge_id: currentJudgeId, team_codes })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || `HTTP ${res.status}`);
+
+        alert(`✅ Saved ${team_codes.length} assignment(s) for ${currentJudgeId}.`);
+      } catch (err) {
+        console.error(err);
+        alert("❌ Failed to save assignments. Check console for details.");
+      }
+    }
+
+    btnSave.addEventListener("click", saveAssignments);
+
+    const teamListBtn = document.getElementById('teamListBtn');
+    const teamListStatus = document.getElementById('teamListStatus');
+    const teamListContainer = document.getElementById('teamListContainer');
+
+    // Optional: adjust to your actual API path
+    const TEAMS_API = `${API}/teams`;
+
+    teamListBtn?.addEventListener('click', loadTeams);
+
+    async function loadTeams() {
+      teamListStatus.textContent = 'Loading teams…';
+      teamListContainer.innerHTML = '';
+      try {
+        const res = await fetch(TEAMS_API, { headers: { 'Accept': 'application/json' }});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const teams = Array.isArray(data) ? data : (data.results || data.teams || []);
+        renderTeamTable(teams);
+        teamListStatus.textContent = `Showing ${teams.length} team(s).`;
+      } catch (err) {
+        console.error(err);
+        teamListStatus.textContent = 'Failed to load teams. Please try again.';
+      }
+    }
+
+    function renderTeamTable(rows) {
+      if (!rows || rows.length === 0) {
+        teamListContainer.innerHTML = '<div style="padding:12px;">No teams found.</div>';
+        return;
+      }
+
+      // Decide columns to show (auto-detect common fields)
+      const preferredOrder = [
+        'team_code','team_name','category','school','members','assigned_judge','status','created_at'
+      ];
+      const allKeys = new Set();
+      rows.forEach(r => Object.keys(r).forEach(k => allKeys.add(k)));
+      const columns = preferredOrder.filter(k => allKeys.has(k));
+      if (columns.length === 0) columns.push(...allKeys); // fallback
+
+      // Build controls (search)
+      const controls = document.createElement('div');
+      controls.style = 'display:flex; gap:8px; align-items:center; padding:8px;';
+      controls.innerHTML = `
+      <input id="teamSearch" placeholder="Search team code/name/school…" style="flex:1; padding:6px 8px; border:1px solid #ccc; border-radius:6px;">
+      <button id="clearSearch" class="btn" style="padding:6px 10px;">Clear</button>
+    `;
+
+      // Build table
+      const table = document.createElement('table');
+      table.style = 'width:100%; border-collapse:collapse; font-size:14px;';
+      table.innerHTML = `
+      <thead>
+        <tr>
+          ${columns.map(c => `<th data-key="${c}" style="text-align:left; position:sticky; top:0; background:#fafafa; border-bottom:1px solid #ddd; padding:10px; cursor:pointer;">${toTitle(c)} ▲▼</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+
+      const tbody = table.querySelector('tbody');
+      let currentRows = [...rows];
+      let sortState = { key: columns[0], dir: 'asc' };
+
+      function toTitle(key) {
+        return key.replace(/_/g,' ').replace(/\b\w/g, ch => ch.toUpperCase());
+      }
+
+      function drawBody(list) {
+        tbody.innerHTML = list.map(r => `
+        <tr>
+          ${columns.map(c => `<td style="border-bottom:1px solid #eee; padding:8px 10px;">${safeCell(r[c])}</td>`).join('')}
+        </tr>
+      `).join('');
+      }
+
+      function safeCell(v) {
+        if (v == null) return '';
+        if (Array.isArray(v)) return v.join(', ');
+        if (typeof v === 'object') return JSON.stringify(v);
+        return String(v);
+      }
+
+      function applySort() {
+        const { key, dir } = sortState;
+        currentRows.sort((a,b) => {
+          const av = (a[key] ?? '').toString().toLowerCase();
+          const bv = (b[key] ?? '').toString().toLowerCase();
+          if (av < bv) return dir === 'asc' ? -1 : 1;
+          if (av > bv) return dir === 'asc' ? 1 : -1;
+          return 0;
+        });
+        drawBody(currentRows);
+      }
+
+      function applyFilter(q) {
+        const query = q.trim().toLowerCase();
+        if (!query) {
+          currentRows = [...rows];
+        } else {
+          currentRows = rows.filter(r => {
+            return ['team_code','team_name','school','category']
+              .filter(k => k in r)
+              .some(k => String(r[k] ?? '').toLowerCase().includes(query));
+          });
+        }
+        applySort();
+      }
+
+      // Sorting handlers
+      table.querySelectorAll('th').forEach(th => {
+        th.addEventListener('click', () => {
+          const k = th.dataset.key;
+          if (sortState.key === k) {
+            sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortState = { key: k, dir: 'asc' };
+          }
+          applySort();
+        });
+      });
+
+      // Search handlers
+      controls.querySelector('#teamSearch').addEventListener('input', (e) => {
+        applyFilter(e.target.value);
+      });
+      controls.querySelector('#clearSearch').addEventListener('click', () => {
+        const inp = controls.querySelector('#teamSearch');
+        inp.value = '';
+        applyFilter('');
+      });
+
+      teamListContainer.innerHTML = '';
+      teamListContainer.appendChild(controls);
+      teamListContainer.appendChild(table);
+
+      // Initial paint
+      applySort();
+    }
+
+    // Handle Add Team
+    const ntSubmit = document.getElementById('nt_submit');
+    const ntStatus = document.getElementById('newTeamStatus');
+
+    ntSubmit?.addEventListener('click', async () => {
+      const codeEl = document.getElementById('nt_team_code');
+      const nameEl = document.getElementById('nt_team_name');
+      const catEl  = document.getElementById('nt_category');
+
+      const team_code = (codeEl.value || '').trim().toUpperCase();
+      const team_name = (nameEl.value || '').trim();
+      const category  = (catEl.value  || '').trim();
+
+      if (!team_code || !team_name || !category) {
+        ntStatus.textContent = 'Please fill in code, name, and category.';
+        return;
+      }
+
+      // Simple UX: disable button during save
+      ntSubmit.disabled = true;
+      ntStatus.textContent = 'Saving…';
+
+      try {
+        const res = await fetch(TEAMS_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept':'application/json' },
+          body: JSON.stringify({ team_code, team_name, category })
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || data.error) {
+          const msg = data.error || `HTTP ${res.status}`;
+          // Nice message for duplicate team_code (409 from Worker)
+          if (/UNIQUE constraint failed|409/.test(msg)) {
+            ntStatus.textContent = 'That team code already exists.';
+          } else {
+            ntStatus.textContent = 'Failed to save: ' + msg;
+          }
+          return;
+        }
+
+        ntStatus.textContent = 'Team saved ✅';
+        // Clear inputs
+        codeEl.value = '';
+        nameEl.value = '';
+        catEl.value = '';
+
+        // Refresh list if the table is visible
+        if (typeof loadTeams === 'function') loadTeams();
+      } catch (e) {
+        ntStatus.textContent = 'Network error. Please try again.';
+        console.error(e);
+      } finally {
+        ntSubmit.disabled = false;
+      }
+    });
+
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+      // localStorage.removeItem("judge_id");
+      // window.location.href = "index.html";
+      alert('Logout clicked (wire this to your auth).');
+    });
+
+    // Endpoint base (mirror your teams setup)
+
+    // Wire your existing Judges button(s).
+    // If your tab button id is different, just change the selectors below.
+    document.getElementById('btnJudges')?.addEventListener('click', () => {
+      loadJudges();
+    });
+    document.getElementById('btnJudgesRefresh')?.addEventListener('click', () => {
+      loadJudges();
+    });
+
+    async function loadJudges() {
+      const statusEl = document.getElementById('judgeListStatus');
+      const container = document.getElementById('judgeListContainer');
+      if (!statusEl || !container) return;
+
+      statusEl.textContent = 'Loading judges…';
+      container.innerHTML = '';
+      try {
+        const res = await fetch(JUDGES_API, { headers: { 'Accept': 'application/json' }});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const judges = Array.isArray(data) ? data : (data.results || data.judges || []);
+        renderJudgesTable(judges);
+        statusEl.textContent = `Showing ${judges.length} judge(s).`;
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = 'Failed to load judges.';
+      }
+    }
+
+    const JUDGES_API = `${API}/judges`;
+
+    document.getElementById('btnJudgesRefresh')?.addEventListener('click', () => {
+      if (typeof loadJudges === 'function') loadJudges();
+    });
+
+    const njSubmit = document.getElementById('nj_submit');
+    const njStatus = document.getElementById('newJudgeStatus');
+
+    njSubmit?.addEventListener('click', async () => {
+      const judge_id = document.getElementById('nj_judge_id').value.trim().toUpperCase();
+      const judge_name = document.getElementById('nj_judge_name').value.trim().toUpperCase();
+
+      if (!judge_id || !judge_name) {
+        njStatus.textContent = 'Please fill in both fields.';
+        return;
+      }
+
+      njSubmit.disabled = true;
+      njStatus.textContent = 'Saving…';
+
+      try {
+        const res = await fetch(JUDGES_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept':'application/json' },
+          body: JSON.stringify({ judge_id, judge_name })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+
+        njStatus.textContent = 'Judge added ✅';
+        document.getElementById('nj_judge_id').value = '';
+        document.getElementById('nj_judge_name').value = '';
+
+        if (typeof loadJudges === 'function') loadJudges();
+      } catch (err) {
+        console.error(err);
+        njStatus.textContent = 'Failed to save: ' + err.message;
+      } finally {
+        njSubmit.disabled = false;
+      }
+    });
+
+    function renderJudgesTable(rows) {
+      const container = document.getElementById('judgeListContainer');
+      if (!container) return;
+
+      if (!rows || rows.length === 0) {
+        container.innerHTML = '<div style="padding:12px;">No judges found.</div>';
+        return;
+      }
+
+      // Common judge fields; auto-detect if some don’t exist
+      const preferred = [
+        'judge_id','judge_name','category','email','phone','assigned_count','created_at'
+      ];
+      const keys = new Set();
+      rows.forEach(r => Object.keys(r).forEach(k => keys.add(k)));
+      const columns = preferred.filter(k => keys.has(k));
+      if (columns.length === 0) columns.push(...keys);
+
+      // Controls
+      const controls = document.createElement('div');
+      controls.style = 'display:flex; gap:8px; align-items:center; padding:8px;';
+      controls.innerHTML = `
+    <input id="judgeSearch" placeholder="Search name/category/email…" style="flex:1; padding:6px 8px; border:1px solid #ccc; border-radius:6px;">
+    <button id="clearJudgeSearch" class="tbtn" style="padding:6px 10px;">Clear</button>
+  `;
+
+      // Table
+      const table = document.createElement('table');
+      table.style = 'width:100%; border-collapse:collapse; font-size:14px;';
+      table.innerHTML = `
+    <thead>
+      <tr>
+        ${columns.map(c => `<th data-k="${c}" style="text-align:left; position:sticky; top:0; background:#fafafa; border-bottom:1px solid #ddd; padding:10px; cursor:pointer;">${titleCase(c)} ▲▼</th>`).join('')}
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+      const tbody = table.querySelector('tbody');
+      let current = [...rows];
+      let sortState = { key: columns[0], dir: 'asc' };
+
+      function titleCase(s){ return s.replace(/_/g,' ').replace(/\b\w/g, ch=>ch.toUpperCase()); }
+      function cell(v){
+        if (v == null) return '';
+        if (Array.isArray(v)) return v.join(', ');
+        if (typeof v === 'object') return JSON.stringify(v);
+        return String(v);
+      }
+      function draw(list){
+        tbody.innerHTML = list.map(r => `
+      <tr>
+        ${columns.map(c => `<td style="border-bottom:1px solid #eee; padding:8px 10px;">${cell(r[c])}</td>`).join('')}
+      </tr>
+    `).join('');
+      }
+      function sortNow(){
+        const { key, dir } = sortState;
+        current.sort((a,b)=>{
+          const av = (a[key] ?? '').toString().toLowerCase();
+          const bv = (b[key] ?? '').toString().toLowerCase();
+          if (av < bv) return dir==='asc' ? -1 : 1;
+          if (av > bv) return dir==='asc' ? 1 : -1;
+          return 0;
+        });
+        draw(current);
+      }
+      function filterNow(q){
+        const ql = q.trim().toLowerCase();
+        if (!ql) {
+          current = [...rows];
+        } else {
+          current = rows.filter(r =>
+            ['judge_id','judge_name','category','email','phone']
+              .filter(k => k in r)
+              .some(k => String(r[k] ?? '').toLowerCase().includes(ql))
+          );
+        }
+        sortNow();
+      }
+
+      table.querySelectorAll('th').forEach(th=>{
+        th.addEventListener('click', ()=>{
+          const k = th.dataset.k;
+          if (sortState.key === k) sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+          else sortState = { key: k, dir: 'asc' };
+          sortNow();
+        });
+      });
+
+      controls.querySelector('#judgeSearch').addEventListener('input', e => filterNow(e.target.value));
+      controls.querySelector('#clearJudgeSearch').addEventListener('click', ()=>{
+        const inp = controls.querySelector('#judgeSearch');
+        inp.value = '';
+        filterNow('');
+      });
+
+      container.innerHTML = '';
+      container.appendChild(controls);
+      container.appendChild(table);
+      sortNow();
+    }
   </script>
 </body>
 </html>
