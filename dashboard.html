@@ -37,7 +37,7 @@
 </head>
 <body>
   <header>
-    <h2 id="judgeName">Judge</h2>
+    <h2 id="judgeName"></h2>
     <button onclick="logout()">Logout</button>
   </header>
 
@@ -63,7 +63,7 @@
 
     if (!judge_id) window.location.href = "index.html";
 
-    document.getElementById("judgeName").textContent = "Judge: " + judge_id;
+    document.getElementById("judgeName").textContent = "Judge: " + judge_name;
 
     const teamSelect = document.getElementById("teamSelect");
     const formDiv = document.getElementById("criteriaForm");
