@@ -94,46 +94,44 @@
         return;
       }
 
-      // Always rebuild form from criteria
-      renderScoringForm();
+      // Refresh the page section (clear previous form)
+      formDiv.innerHTML = "<p>Loading scores...</p>";
 
-      // Then fetch existing scores from D1 and fill them in
       try {
+        // Always fetch scores from DB
         const url = `${API}/scores?judge_id=${encodeURIComponent(judge_id)}&team_code=${encodeURIComponent(team_code)}`;
         const res = await fetch(url);
         const existingScores = await res.json(); // Expected: { "CRIT1": 8, ... } or {}
 
-        // Fill sliders with saved values (default to 0 if not scored)
-        criteriaList.forEach(crit => {
-          const code = crit.criteria_code;
-          const savedValue = existingScores[code] ?? 0;
-          const slider = document.getElementById(code);
-          const display = document.getElementById("disp_" + code);
+        renderScoringForm(existingScores);
 
-          if (slider) {
-            slider.value = savedValue;
-            display.textContent = savedValue;
-          }
-        });
-
-        // Show feedback if already scored
         if (Object.keys(existingScores).length > 0) {
-          showAlert("✅ Already scored — you may update and resave.");
+          // If already scored — disable form and notify
+          disableFormInputs();
+          showAlert("⚠️ You have already graded this team. You cannot overwrite the score.", "warning");
+        } else {
+          showAlert("✅ You can now grade this team.", "success");
         }
       } catch (err) {
         console.warn("Could not load existing scores:", err);
         showAlert("⚠️ Could not load previous scores. Starting fresh.", "warning");
+        renderScoringForm({});
       }
     }
 
-    function renderScoringForm() {
-      formDiv.innerHTML = criteriaList.map(c => `
-        <label>
-          ${c.criteria_name} (${c.criteria_code})
-          <input type="range" id="${c.criteria_code}" min="0" max="10" step="0.5" value="0">
-          <span class="score-display" id="disp_${c.criteria_code}">0</span>
-        </label>
-      `).join("");
+    function renderScoringForm(existingScores = {}) {
+      formDiv.innerHTML = criteriaList.map(c => {
+        const savedValue = existingScores[c.criteria_code] ?? 0;
+        return `
+          <label>
+            ${c.criteria_name} (${c.criteria_code})
+            <input type="range" id="${c.criteria_code}" min="0" max="10" step="0.5" value="${savedValue}">
+            <span class="score-display" id="disp_${c.criteria_code}">${savedValue}</span>
+          </label>
+        `;
+      }).join("") + `
+        <button id="saveBtn" onclick="saveScores()">💾 Save Scores</button>
+      `;
 
       // Attach live preview
       criteriaList.forEach(c => {
@@ -145,8 +143,14 @@
       });
     }
 
+    function disableFormInputs() {
+      const sliders = formDiv.querySelectorAll("input[type=range]");
+      sliders.forEach(s => s.disabled = true);
+      const saveBtn = document.getElementById("saveBtn");
+      if (saveBtn) saveBtn.disabled = true;
+    }
+
     function showAlert(message, type = "success") {
-      // Remove existing alerts
       const old = formDiv.querySelector(".alert");
       if (old) old.remove();
 
@@ -180,8 +184,9 @@
 
         const data = await res.json();
         if (data.success) {
-          alert("✅ Scores saved to D1!");
-          // Optional: keep form editable (you want this)
+          alert("✅ Scores saved successfully!");
+          disableFormInputs();
+          showAlert("✅ Scores saved. You cannot modify them anymore.", "success");
         } else {
           throw new Error(data.error || "Unknown error");
         }
@@ -201,6 +206,7 @@
 
     // Start the app
     init();
-  </script>
+    </script>
+
 </body>
 </html>
