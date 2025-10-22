@@ -73,6 +73,7 @@
           msg.innerText = data.message || "Invalid credentials.";
         } else {
           localStorage.setItem("judge_id", data.user.judge_id);
+          localStorage.setItem("judge_name", data.user.judge_name);
           window.location.href = "dashboard.html";
         }
       } catch (err) {
