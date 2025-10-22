@@ -14,7 +14,7 @@
       max-width:900px; margin:30px auto; background:white;
       padding:30px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.1);
     }
-    h2 { color:#004aad; }
+    h2 { color:#fff; margin:0; }
     label { display:block; margin-top:15px; font-weight:500; }
     select,input[type=range] {
       width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;
@@ -31,11 +31,13 @@
       text-align:center; margin-left:10px;
     }
     .alert { background:#e8f9f0; padding:10px 15px; border-left:4px solid #28a745; border-radius:8px; margin-bottom:10px; color:#2d7a46; }
+    .summary { margin-top:20px; background:#f0f8ff; padding:15px; border-radius:10px; border:1px solid #d0e0f5; }
+    .summary span { font-weight:bold; color:#004aad; }
   </style>
 </head>
 <body>
   <header>
-    <h2>Judging Dashboard</h2>
+    <h2 id="judgeName">Judge</h2>
     <button onclick="logout()">Logout</button>
   </header>
 
@@ -47,6 +49,10 @@
 
     <div id="criteriaForm" style="margin-top:20px;"></div>
 
+    <div class="summary" id="scoreSummary" style="display:none;">
+      Total Score: <span id="totalScore">0</span> |
+      Final Score: <span id="finalScore">0.00</span>
+    </div>
 
     <button id="saveBtn" onclick="saveScores()">💾 Save Scores</button>
   </main>
@@ -57,10 +63,14 @@
 
     if (!judge_id) window.location.href = "index.html";
 
+    document.getElementById("judgeName").textContent = "Judge: " + judge_id;
+
     const teamSelect = document.getElementById("teamSelect");
     const formDiv = document.getElementById("criteriaForm");
     const totalScoreEl = document.getElementById("totalScore");
     const finalScoreEl = document.getElementById("finalScore");
+    const scoreSummary = document.getElementById("scoreSummary");
+    const saveBtn = document.getElementById("saveBtn");
 
     let criteriaList = [];
 
@@ -91,6 +101,7 @@
       const team_code = teamSelect.value;
       if (!team_code) {
         formDiv.innerHTML = "";
+        scoreSummary.style.display = "none";
         return;
       }
 
@@ -103,16 +114,17 @@
 
         renderScoringForm(existingScores);
 
-        if (Object.keys(existingScores).length > 0) {
+        if (existingScores && existingScores.total_score !== undefined) {
+          // 🟡 If already graded — lock form
           disableFormInputs();
-          showAlert(
-            `⚠️ You have already graded this team. Total: ${existingScores.total_score}, Final: ${existingScores.final_score.toFixed(2)}`,
-            "warning"
-          );
-          totalScoreEl.textContent = existingScores.total_score;
+          showAlert("⚠️ You have already graded this team. Scores are locked.", "warning");
+
+          scoreSummary.style.display = "block";
+          totalScoreEl.textContent = existingScores.total_score.toFixed(1);
           finalScoreEl.textContent = existingScores.final_score.toFixed(2);
         } else {
           showAlert("✅ You can now grade this team.", "success");
+          scoreSummary.style.display = "block";
         }
       } catch (err) {
         showAlert("⚠️ Could not load scores. Starting new grading.", "warning");
@@ -122,18 +134,15 @@
 
     // ===== FORM RENDER =====
     function renderScoringForm(existingScores = {}) {
-      formDiv.innerHTML = criteriaList.map(c => {
-        const savedValue = existingScores[c.criteria_code] ?? 0;
-        return `
-          <label>
-            ${c.criteria_name} (${c.criteria_code})
-            <input type="range" id="${c.criteria_code}" min="0" max="10" step="1" value="${savedValue}">
-            <span class="score-display" id="disp_${c.criteria_code}">${savedValue}</span>
-          </label>
-        `;
-      }).join("");
+      formDiv.innerHTML = criteriaList.map(c => `
+        <label>
+          ${c.criteria_name} (${c.criteria_code})
+          <input type="range" id="${c.criteria_code}" min="0" max="10" step="1" value="${existingScores[c.criteria_code] ?? 0}">
+          <span class="score-display" id="disp_${c.criteria_code}">${existingScores[c.criteria_code] ?? 0}</span>
+        </label>
+      `).join("");
 
-      // Live preview + calculation
+      // Attach live preview
       criteriaList.forEach(c => {
         const slider = document.getElementById(c.criteria_code);
         const disp = document.getElementById("disp_" + c.criteria_code);
@@ -163,6 +172,7 @@
 
       totalScoreEl.textContent = total.toFixed(1);
       finalScoreEl.textContent = final.toFixed(2);
+      scoreSummary.style.display = "block";
     }
 
     // ===== ALERT BOX =====
@@ -184,8 +194,7 @@
     function disableFormInputs() {
       const sliders = formDiv.querySelectorAll("input[type=range]");
       sliders.forEach(s => s.disabled = true);
-      const saveBtn = document.getElementById("saveBtn");
-      if (saveBtn) saveBtn.disabled = true;
+      saveBtn.disabled = true;
     }
 
     // ===== SAVE SCORES =====
@@ -195,8 +204,7 @@
 
       const scores = {};
       criteriaList.forEach(c => {
-        const val = parseFloat(document.getElementById(c.criteria_code)?.value) || 0;
-        scores[c.criteria_code] = val;
+        scores[c.criteria_code] = parseFloat(document.getElementById(c.criteria_code)?.value) || 0;
       });
 
       try {
