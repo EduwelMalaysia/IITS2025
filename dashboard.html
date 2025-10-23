@@ -38,6 +38,11 @@
     const judge_id = localStorage.getItem("judge_id");
     if (!judge_id) window.location.href = "index.html";
 
+    // In dashboard.html only
+    if (!localStorage.getItem("judge_id")) {
+      window.location.href = "index.html";
+    }
+
     const teamSelect = document.getElementById("teamSelect");
     const formDiv = document.getElementById("criteriaForm");
     const saveBtn = document.getElementById("saveBtn");

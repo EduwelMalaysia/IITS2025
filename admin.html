@@ -430,10 +430,9 @@
 
   <script>
     const API = "https://judging-system.yeewengloke.workers.dev";
-
+{% comment %} 
     // Check if admin is logged in
-    if (localStorage.getItem("isAdmin") !== "true") {
-      // Redirect to login if not authenticated
+    if (localStorage.getItem("isAdmin") !== "true") {\
       window.location.href = "index.html";
     }
 
@@ -463,7 +462,7 @@
     // Guard: if not logged in, redirect to login
     if (!localStorage.getItem("isAdmin") && !localStorage.getItem("judge_id")) {
       window.location.href = "index.html";
-    }
+    } {% endcomment %}
 
     /* ===============================
        1. Panel Switching (Toolbar)
