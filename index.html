@@ -101,9 +101,9 @@
 
       // ✅ Special admin credentials
       if (username === "eduwel" && password === "iits2025") {
-        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("isAdmin", "true");
         window.location.href = "admin.html";
-        return; // 🔴 STOP here — don't call API
+        return;
       }
 
       // 👇 Only reach here for judge login

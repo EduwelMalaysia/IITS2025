@@ -431,6 +431,12 @@
   <script>
     const API = "https://judging-system.yeewengloke.workers.dev";
 
+    // Check if admin is logged in
+    if (localStorage.getItem("isAdmin") !== "true") {
+      // Redirect to login if not authenticated
+      window.location.href = "index.html"; // or your login page
+    }
+
     /* ===============================
        1. Panel Switching (Toolbar)
     ================================*/
@@ -1149,11 +1155,14 @@ async function saveAssignments() {
     });
 
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
-      // localStorage.removeItem("judge_id");
-      // window.location.href = "index.html";
-      alert('Logout clicked (wire this to your auth).');
+      // Clear all auth tokens
+      localStorage.removeItem("isAdmin");
+      localStorage.removeItem("judge_id");
+      
+      // Redirect to login
+      window.location.href = "index.html";
     });
-
+    
     // Endpoint base (mirror your teams setup)
 
     // Wire your existing Judges button(s).
