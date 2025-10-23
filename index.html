@@ -106,13 +106,13 @@
 
     // If back/forward, clear auth and redirect
     if (isBackForwardNavigation()) {
-      sessionStorage.removeItem("isAdmin");
-      sessionStorage.removeItem("judge_id");
+      localStorage.removeItem("isAdmin");
+      localStorage.removeItem("judge_id");
       window.location.href = "index.html";
     }
 
     // Guard: if not logged in, redirect to login
-    if (!sessionStorage.getItem("isAdmin") && !sessionStorage.getItem("judge_id")) {
+    if (!localStorage.getItem("isAdmin") && !localStorage.getItem("judge_id")) {
       window.location.href = "index.html";
     }
 
@@ -129,7 +129,7 @@
 
       // ✅ Special admin credentials
       if (username === "eduwel" && password === "iits2025") {
-        sessionStorage.setItem("isAdmin", "true");
+        localStorage.setItem("isAdmin", "true");
         window.location.href = "admin.html";
         return;
       }
@@ -146,7 +146,7 @@
           msg.innerText = data.message || "Invalid credentials.";
           document.getElementById("password").value = ""; // clear password on fail
         } else {
-          sessionStorage.setItem("judge_id", data.user.judge_id);
+          localStorage.setItem("judge_id", data.user.judge_id);
           window.location.href = "dashboard.html";
         }
       } catch (err) {
