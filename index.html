@@ -111,11 +111,6 @@
       window.location.href = "index.html";
     }
 
-    // Guard: if not logged in, redirect to login
-    if (!localStorage.getItem("isAdmin") && !localStorage.getItem("judge_id")) {
-      window.location.href = "index.html";
-    }
-
     async function login() {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
