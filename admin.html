@@ -432,7 +432,7 @@
     const API = "https://judging-system.yeewengloke.workers.dev";
 
     // Check if admin is logged in
-    if (localStorage.getItem("isAdmin") !== "true") {
+    if (sessionStorage.getItem("isAdmin") !== "true") {
       // Redirect to login if not authenticated
       window.location.href = "index.html";
     }
@@ -455,13 +455,13 @@
 
     // If back/forward, clear auth and redirect
     if (isBackForwardNavigation()) {
-      localStorage.removeItem("isAdmin");
-      localStorage.removeItem("judge_id");
+      sessionStorage.removeItem("isAdmin");
+      sessionStorage.removeItem("judge_id");
       window.location.href = "index.html";
     }
 
     // Guard: if not logged in, redirect to login
-    if (!localStorage.getItem("isAdmin") && !localStorage.getItem("judge_id")) {
+    if (!sessionStorage.getItem("isAdmin") && !sessionStorage.getItem("judge_id")) {
       window.location.href = "index.html";
     }
 
@@ -1184,8 +1184,8 @@ async function saveAssignments() {
 
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
       // Clear all auth tokens
-      localStorage.removeItem("isAdmin");
-      localStorage.removeItem("judge_id");
+      sessionStorage.removeItem("isAdmin");
+      sessionStorage.removeItem("judge_id");
       window.location.href = "index.html";
     });
 
