@@ -35,11 +35,30 @@
 
   <script>
     const API = "https://judging-system.yeewengloke.workers.dev";
+
     const judge_id = localStorage.getItem("judge_id");
     if (!judge_id) window.location.href = "index.html";
 
-    // In dashboard.html only
     if (!localStorage.getItem("judge_id")) {
+      window.location.href = "index.html";
+    }
+
+    function isBackForwardNavigation() {
+      if (window.performance.getEntriesByType) {
+        const navEntries = performance.getEntriesByType("navigation");
+        if (navEntries.length > 0) {
+          return navEntries[0].type === "back_forward";
+        }
+      }
+      if (window.performance && window.performance.navigation) {
+        return window.performance.navigation.type === 2;
+      }
+      return false;
+    }
+
+    if (isBackForwardNavigation()) {
+      localStorage.removeItem("isAdmin");
+      localStorage.removeItem("judge_id");
       window.location.href = "index.html";
     }
 
