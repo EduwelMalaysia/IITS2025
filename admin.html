@@ -1469,6 +1469,197 @@ async function saveAssignments() {
       container.appendChild(table);
       sortNow();
     }
+/* ===============================
+   Student Account Management
+================================*/
+
+const STUDENTS_API = `${API}/students`;
+
+// Tab switching auto-load
+let studentListLoadedOnce = false;
+document.getElementById('btnStudents')?.addEventListener('click', () => {
+  if (!studentListLoadedOnce) {
+    studentListLoadedOnce = true;
+    loadStudents();
+  }
+});
+
+// Refresh button
+document.getElementById('btnStudentRefresh')?.addEventListener('click', loadStudents);
+
+// Uncomment this for debug.
+document.getElementById('ns_submit').addEventListener('click', async () => {
+  const codeEl = document.getElementById('ns_student_code');
+  const nameEl = document.getElementById('ns_student_name');
+  const catEl = document.getElementById('ns_category');
+  const statusEl = document.getElementById('newStudentStatus');
+
+  const student_code = codeEl.value.trim();
+  const student_name = nameEl.value.trim();
+  const category = catEl.value.trim();
+
+  // Check if all fields are filled
+  if (!student_code || !student_name || !category) {
+    statusEl.textContent = 'Please fill all fields.';
+    return;
+  }
+
+  const btn = document.getElementById('ns_submit');
+  btn.disabled = true; // Disable the button to prevent multiple submissions
+  statusEl.textContent = 'Saving…'; // Show saving status
+
+  try {
+    const response = await fetch(STUDENTS_API, { // Correct the endpoint if necessary // Fixed API path from /student to STUDENT_API
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ student_code, student_name, category })
+    });
+
+    if (!response.ok) {
+      const text = await response.text(); // Attempt to get text response
+      throw new Error(`Server responded with ${response.status}: ${text}`);
+    }
+
+    const data = await response.json(); // Parse JSON response
+    statusEl.textContent = 'Student saved ✅'; // Update status message
+    codeEl.value = '';
+    nameEl.value = '';
+    catEl.value = '';
+    document.getElementById('btnStudentRefresh').click(); // Refresh the student list
+  } catch (e) {
+    console.error('Network error:', e);
+    statusEl.textContent = `Network error: ${e.message || 'Unknown error'}`; // Show error message
+  } finally {
+    btn.disabled = false; // Re-enable the button
+  }
+});
+
+async function loadStudents() {
+  const statusEl = document.getElementById('studentListStatus');
+  const container = document.getElementById('studentListContainer');
+
+  if (!statusEl || !container) return;
+
+  statusEl.textContent = 'Loading students…';
+  container.innerHTML = '';
+
+  try {
+    const res = await fetch(STUDENTS_API, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    const data = await res.json();
+    const students = Array.isArray(data) ? data : (data.results || data.students || []);
+    
+    renderStudentsTable(students);
+    statusEl.textContent = `Showing ${students.length} student(s).`;
+  } catch (e) {
+    console.error(e);
+    statusEl.textContent = '❌ Failed to load students.';
+  }
+}
+
+function renderStudentsTable(rows) {
+  const container = document.getElementById('studentListContainer');
+  if (!container) return;
+
+  if (!rows || rows.length === 0) {
+    container.innerHTML = '<div style="padding:12px;">No students found.</div>';
+    return;
+  }
+
+  const preferred = ['student_code', 'student_name', 'category', 'created_at'];
+  const keys = new Set();
+  rows.forEach(r => Object.keys(r).forEach(k => keys.add(k)));
+  const columns = preferred.filter(k => keys.has(k));
+  if (columns.length === 0) columns.push(...keys);
+
+  // Controls
+  const controls = document.createElement('div');
+  controls.style = 'display:flex; gap:8px; align-items:center; padding:8px;';
+  controls.innerHTML = `
+    <input id="studentSearch" placeholder="Search code/name/category…" style="flex:1; padding:6px 8px; border:1px solid #ccc; border-radius:6px;">
+    <button id="clearStudentSearch" class="btn" style="padding:6px 10px;">Clear</button>
+  `;
+
+  // Table
+  const table = document.createElement('table');
+  table.style = 'width:100%; border-collapse:collapse; font-size:14px;';
+  table.innerHTML = `
+    <thead>
+      <tr>
+        ${columns.map(c => `<th data-key="${c}" style="text-align:left; position:sticky; top:0; background:#fafafa; border-bottom:1px solid #ddd; padding:10px; cursor:pointer;">${titleCase(c)} ▲▼</th>`).join('')}
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tbody = table.querySelector('tbody');
+  let currentRows = [...rows];
+  let sortState = { key: columns[0], dir: 'asc' };
+
+  function titleCase(s) { return s.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()); }
+  function cell(v) {
+    if (v == null) return '';
+    if (Array.isArray(v)) return v.join(', ');
+    if (typeof v === 'object') return JSON.stringify(v);
+    return String(v);
+  }
+  function draw(list) {
+    tbody.innerHTML = list.map(r => `
+      <tr>
+        ${columns.map(c => `<td style="border-bottom:1px solid #eee; padding:8px 10px;">${cell(r[c])}</td>`).join('')}
+      </tr>
+    `).join('');
+  }
+  function sortNow() {
+    const { key, dir } = sortState;
+    currentRows.sort((a, b) => {
+      const av = (a[key] ?? '').toString().toLowerCase();
+      const bv = (b[key] ?? '').toString().toLowerCase();
+      if (av < bv) return dir === 'asc' ? -1 : 1;
+      if (av > bv) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    draw(currentRows);
+  }
+  function filterNow(q) {
+    const ql = q.trim().toLowerCase();
+    if (!ql) {
+      currentRows = [...rows];
+    } else {
+      currentRows = rows.filter(r =>
+        ['student_code', 'student_name', 'category']
+          .filter(k => k in r)
+          .some(k => String(r[k] ?? '').toLowerCase().includes(ql))
+      );
+    }
+    sortNow();
+  }
+
+  // Event listeners
+  table.querySelectorAll('th').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.key;
+      if (sortState.key === k) sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+      else sortState = { key: k, dir: 'asc' };
+      sortNow();
+    });
+  });
+
+  controls.querySelector('#studentSearch').addEventListener('input', (e) => filterNow(e.target.value));
+  controls.querySelector('#clearStudentSearch').addEventListener('click', () => {
+    controls.querySelector('#studentSearch').value = '';
+    filterNow('');
+  });
+
+  container.innerHTML = '';
+  container.appendChild(controls);
+  container.appendChild(table);
+  sortNow();
+}
+
   </script>
 </body>
 </html>
