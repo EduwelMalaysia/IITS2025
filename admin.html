@@ -500,8 +500,29 @@
         <div id="judgeListContainer" style="overflow:auto; max-height:420px; border:1px solid #ddd; border-radius:8px;"></div>
       </section>
     </section>
-  </main>
 
+    <section id="panelStudents" class="panel card" role="tabpanel" aria-labelledby="btnStudents">
+      <h2>Create Student Account</h2>
+      <div class="sectionbar" id="newStudentBar" style="gap:.5rem; align-items:center;">
+        <button class="tbtn" id="btnStudentRefresh">⟳ Refresh</button>
+
+        <input id="ns_student_code" type="text" placeholder="Student code (e.g. S-012)" style="max-width:10rem;">
+        <input id="ns_student_name" type="text" placeholder="Student name" style="min-width:14rem;">
+        <input id="ns_category" type="text" placeholder="Category (e.g. Tech-Hackathon Tier 1)" style="max-width:14rem;">
+
+        <button class="tbtn" id="ns_submit">➕ Add</button>
+
+        <div class="spacer"></div>
+        <span id="newStudentStatus" class="muted" style="min-width:12rem;"></span>
+      </div>
+
+      <!-- Student list display -->
+      <section id="studentListPanel" style="margin-top:1rem;">
+        <div id="studentListStatus" style="font-size:0.9rem;color:#666;"></div>
+        <div id="studentListContainer" style="overflow:auto; max-height:420px; border:1px solid #ddd; border-radius:8px;"></div>
+      </section>
+  </main>
+  
   <script>
     const API = "https://judging-system.yeewengloke.workers.dev";
 
