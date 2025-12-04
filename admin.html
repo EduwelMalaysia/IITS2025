@@ -1723,13 +1723,30 @@ function renderStudentsTable(rows) {
   sortNow();
 }
 
-document.getElementById("nq_submit").addEventListener("click", async () => {
+document.getElementById('nq_submit').addEventListener('click', (e) => {
+  e.preventDefault();
+
+  if (!confirm("Are you sure you want to submit this question?")) {
+    return; // user pressed Cancel
+  }
+
+  submitQuestion(); // if OK → run your submit function
+});
+
+document.getElementById('btnQuestionRefresh').addEventListener('click', (e) => {
+  e.preventDefault();
+
+  clearQuestionForm()
+});
+
+async function submitQuestion() {
+  
   const btn = document.getElementById("nq_submit");
   const statusEl = document.getElementById("questionStatus");
-
+  
   btn.disabled = true;
   statusEl.textContent = "Saving question…";
-
+  
   const payload = {
     code: document.getElementById("nq_question_code").value,
     difficulty: document.getElementById("MarkSelect").value,
@@ -1740,7 +1757,7 @@ document.getElementById("nq_submit").addEventListener("click", async () => {
       output: document.getElementById(`nq_question_out${i+1}`).value
     }))
   };
-
+  
   try {
     const response = await fetch(
       "https://judging-system.yeewengloke.workers.dev/questions",
@@ -1750,16 +1767,20 @@ document.getElementById("nq_submit").addEventListener("click", async () => {
         body: JSON.stringify(payload)
       }
     );
-
+    
     const text = await response.text();
     console.log("RAW RESPONSE:", text);
-
+    
     if (!response.ok) {
       throw new Error(text);
     }
-
+    
     const data = JSON.parse(text);
     statusEl.textContent = "Question saved successfully!";
+    
+    // After statusEl.textContent = "Question saved successfully!";
+    clearQuestionForm()
+
 
   } catch (err) {
     console.error(err);
@@ -1767,7 +1788,18 @@ document.getElementById("nq_submit").addEventListener("click", async () => {
   } finally {
     btn.disabled = false;
   }
-});
+}
+
+function clearQuestionForm() {
+  document.getElementById("nq_question_code").value = '';
+  document.getElementById("MarkSelect").value = '';
+  document.getElementById("nq_question_title").value = '';
+  document.getElementById("nq_question_statement").value = '';
+  for (let i = 1; i <= 10; i++) {
+    document.getElementById(`nq_question_input${i}`).value = '';
+    document.getElementById(`nq_question_out${i}`).value = '';
+  }
+}
     
   </script>
 </body>
