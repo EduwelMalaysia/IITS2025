@@ -122,6 +122,7 @@ async function login() {
         	window.location.href = "dashboard.html";
 		} else if (data.type === "student") {
   			localStorage.setItem("student_id", data.user.student_id);
+        	localStorage.setItem("student_name", data.user.student_name);  // from worker
 			window.location.href = "student_dashboard.html";
 		}
       } catch (err) {
