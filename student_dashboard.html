@@ -302,51 +302,67 @@
       <div class="assign-top">
         <div class="assign-col">
           <h1>Student Voting!</h1>
-          <label class="muted" for="category">Team Categories</label>
+          <!-- <label class="muted" for="category">Team Categories</label>
           <select id="category">
             <option value="">— Select a category —</option>
             <option value="Inno-Tech">Inno-Tech</option>
             <option value="Inno-Maker">Inno-Maker</option>
-            <!-- <option value="Hackathon (Tier 1)">Hackathon (Tier 1)</option> -->
-            <option value="Hackathon (Tier 2)">Hackathon (Tier 2)</option>
+            <option value="Hackathon (Tier 1)">Hackathon (Tier 1)</option>
+            <option value="Hackathon (Tier 2)">Hackathon (Tier 2)</option> -->
           </select>
-        </div>
-        
-        <div class="spacer"></div>
-        <div class="assign-boards">
-          <!-- LEFT: Available teams (checkbox, multi-select) -->
-          <div class="list">
-          <div class="list-title">Available Teams</div>
-          <div id="teamsList" class="radio-list scroll"></div>
-        </div>
+          
+          <div class="spacer"></div>
+          <div class="assign-boards">
+            <!-- LEFT: Available teams (checkbox, multi-select)
+            <div class="list">
+              <div class="list-title">Available Teams</div>
+              <div id="teamsList" class="radio-list scroll"></div> -->
+              <div id="voteContainer"></div>
+            </div>
+            <button class="tbtn" id="voteSubmit">➕ Submit</button>
+            <p id="voteStatus"></p>
+          </div>
 
   <script>
     
 // ----- CONFIG -----
 const API = "https://judging-system.yeewengloke.workers.dev"; // your D1 API
-const categories = ["Category A", "Category B", "Category C"]; // all categories
+const categories = ["Inno-Tech Primary", "Inno-Tech Secondary", "Inno-Maker Primary", "Inno-Maker Secondary",
+                    "Tech-Hackathon Tier 2 Block-Based", "Tech-Hackathon Tier 2 Text-Based"]; // all categories
 
 // Keep track of loaded teams and user selections
 const teamsByCategory = {};
 const userVotes = {}; // { "Category A": "TEAM001", ... }
 
+// localStorage.setItem("student_id", data.user.student_id);      // from worker
+// localStorage.setItem("student_name", data.user.student_name);  // from worker
+
 // ----- HELPER -----
 function prefixForCategory(category) {
-  // Adjust based on your team code prefix rules
-  return category[category.length - 1]; // example: "A" for "Category A"
+  if (category === "Inno-Tech Primary") return "ITP";
+  if (category === "Inno-Tech Secondary") return "ITS";
+  if (category === "Inno-Maker Primary") return "IMP";
+  if (category === "Inno-Maker Secondary") return "IMS";
+  if (category === "Tech-Hackathon Tier 2 Block-Based") return "TH2B";
+  if (category === "Tech-Hackathon Tier 2 Text-Based") return "TH2T";
+
+  return category[category.length - 1];
 }
 
-// ----- LOAD TEAMS -----
 async function loadTeamsForCategory(category) {
+
+  const prefix = prefixForCategory(category);
+
   if (!teamsByCategory[category]) {
     const url = new URL(`${API}/teams`);
-    url.searchParams.set("category", category);
+    url.searchParams.set("category", prefix); // FIXED
     const res = await fetch(url);
     const data = await res.json();
 
-    // Filter by prefix if needed
-    const pref = prefixForCategory(category);
-    teamsByCategory[category] = data.filter(t => (t.team_code || "").startsWith(pref));
+    // Filter by prefix (optional)
+    teamsByCategory[category] = data.filter(t =>
+      (t.team_code || "").startsWith(prefix)
+    );
   }
 
   renderCategoryDropdown(category);
@@ -406,10 +422,18 @@ document.getElementById("voteSubmit").addEventListener("click", async () => {
   statusEl.textContent = "Submitting votes…";
 
   try {
-    const response = await fetch(`${API}/votes`, { // change to your endpoint
+    const student_id = localStorage.getItem("student_id");
+    const student_name = localStorage.getItem("student_name")
+    console.log(student_id, student_name);
+
+    const response = await fetch(`${API}/votes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ votes: userVotes })
+      body: JSON.stringify({
+        student_id,          // ✅ required by backend
+        student_name,
+        votes: userVotes     // ✅ required by backend
+      })
     });
 
     const text = await response.text();
@@ -417,12 +441,6 @@ document.getElementById("voteSubmit").addEventListener("click", async () => {
 
     const data = JSON.parse(text);
     statusEl.textContent = "Votes submitted successfully ✅";
-
-    // Optionally clear selections
-    categories.forEach(cat => {
-      document.getElementById(`select-${cat}`).selectedIndex = 0;
-      userVotes[cat] = teamsByCategory[cat][0].team_code;
-    });
 
   } catch (err) {
     console.error(err);
