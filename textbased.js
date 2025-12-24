@@ -11,6 +11,7 @@ fetch('real.json')
     })
     .catch(error => console.error('Error loading questions:', error));
 
+
 // State management
 let currentQuestion = 0;
 let startTime = null;
@@ -64,30 +65,6 @@ const modalTitle = document.getElementById('modalTitle');
 const modalMessage = document.getElementById('modalMessage');
 const btnModalCancel = document.getElementById('btnModalCancel');
 const btnModalConfirm = document.getElementById('btnModalConfirm');
-
-// async function endSession() {
-//   const student_id = localStorage.getItem("student_id");
-//   try {
-//     const res = await fetch(`${API}/end-session`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ student_id })
-//     });
-//     const data = await res.json();
-//     if (data.success) {
-//       alert("Session ended successfully.");
-//       window.location.href = "student_dashboard.html"; // go back to dashboard
-//     } else {
-//       alert(data.message);
-//     }
-//   } catch (err) {
-//     console.error(err);
-//     // alert("Failed to end session. Try again.");
-//   }
-// }
-
-
-
 
 // Custom Modal Function
 // Custom Modal Function
@@ -374,7 +351,6 @@ btnEnd.addEventListener('click', () => {
     });
 });
 
-
 // Calculate match percentage using Levenshtein distance or simple char matching
 function calculateMatchPercentage(output, expected) {
     if (!output || !expected) return 0;
@@ -434,6 +410,12 @@ btnStart.addEventListener('click', () => {
     startTimer();
     showQuestion(0);
 });
+
+// btnEnd.addEventListener('click', () => {
+//     showModal("End Competition", "Are you sure you want to end the competition?", () => {
+//         endCompetition();
+//     });
+// });
 
 // Sidebar Toggle
 const btnToggleSidebar = document.getElementById('btnToggleSidebar');
@@ -554,22 +536,22 @@ btnRestart.addEventListener('click', () => {
     // User didn't explicitly say remove restart, but "once submit... can't click anymore" implies persistence.
     // But "Restart Challenge" on completion screen might be for a new user?
     // Let's keep it but it resets everything including user.
-    // showModal("Restart Challenge", "Restarting will clear all progress. Are you sure?", () => {
-    //     completionScreen.style.display = 'none';
-    //     startScreen.style.display = 'flex';
-    //     currentQuestion = 0;
-    //     completedQuestions.clear();
-    //     questionScores = {};
-    //     currentOutput = "";
-    //     hasRunCode = false;
-    //     currentMatchPercentage = 0;
-    //     isCorrect = false;
-    //     currentTestCase = null;
-    //     timerDisplay.textContent = "Time: 00:00:00";
-    //     usernameInput.value = "";
-    //     currentUser = "";
-    //     initQuestionList();
-    // });
+    showModal("Restart Challenge", "Restarting will clear all progress. Are you sure?", () => {
+        completionScreen.style.display = 'none';
+        startScreen.style.display = 'flex';
+        currentQuestion = 0;
+        completedQuestions.clear();
+        questionScores = {};
+        currentOutput = "";
+        hasRunCode = false;
+        currentMatchPercentage = 0;
+        isCorrect = false;
+        currentTestCase = null;
+        timerDisplay.textContent = "Time: 00:00:00";
+        usernameInput.value = "";
+        currentUser = "";
+        initQuestionList();
+    });
 });
 
 // Listen for messages from iframe
