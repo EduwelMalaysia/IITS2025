@@ -321,6 +321,8 @@
             </div>
             <button class="tbtn" id="voteSubmit">➕ Submit</button>
             <p id="voteStatus"></p>
+            <button class="tbtn" id="Battle">⚔️ Battle (Start Hackathon)</button>
+            
           </div>
 
   <script>
@@ -337,6 +339,7 @@ const userVotes = {}; // { "Category A": "TEAM001", ... }
 // localStorage.setItem("student_id", data.user.student_id);      // from worker
 // localStorage.setItem("student_name", data.user.student_name);  // from worker
 
+
 // ----- HELPER -----
 function prefixForCategory(category) {
   if (category === "Inno-Tech Primary") return "ITP";
@@ -349,6 +352,9 @@ function prefixForCategory(category) {
   return category[category.length - 1];
 }
 
+
+
+
 async function loadTeamsForCategory(category) {
 
   const prefix = prefixForCategory(category);
@@ -358,15 +364,16 @@ async function loadTeamsForCategory(category) {
     url.searchParams.set("category", prefix); // FIXED
     const res = await fetch(url);
     const data = await res.json();
-
+    
     // Filter by prefix (optional)
     teamsByCategory[category] = data.filter(t =>
-      (t.team_code || "").startsWith(prefix)
-    );
-  }
-
-  renderCategoryDropdown(category);
+    (t.team_code || "").startsWith(prefix)
+  );
 }
+
+renderCategoryDropdown(category);
+}
+
 
 // ----- RENDER DROPDOWN -----
 function renderCategoryDropdown(category) {
@@ -446,7 +453,50 @@ document.getElementById("voteSubmit").addEventListener("click", async () => {
     console.error(err);
     statusEl.textContent = "Error submitting votes: " + err.message;
   }
+
 });
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const student_id = localStorage.getItem("student_id");
+
+  if (!student_id) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/start-session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ student_id })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.message || "Session already completed.");
+      localStorage.setItem("sessionEnded", "true"); // ✅ store backend info
+    } else {
+      localStorage.setItem("sessionEnded", "false");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Unable to verify session. Please try again.");
+    window.location.href = "index.html";
+  }
+});
+
+document.getElementById("Battle").addEventListener("click", () => {
+  if (localStorage.getItem("sessionEnded") === "true") {
+    alert("You have already completed your session. You cannot start again.");
+    window.location.href = "student_dashboard.html";
+  } else {
+    window.location.href = "textbased.html";
+  }
+});
+
+
 
     // ===== LOGOUT =====
     function logout() {
